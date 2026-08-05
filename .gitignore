@@ -36,7 +36,3 @@ Thumbs.db
 .idea/
 .foo/
 
-# Miscellaneous
-*.d.ts
-*.d.ts.map
-*.js.map
