@@ -35,3 +35,9 @@ Thumbs.db
 .vscode/
 .idea/
 .foo/
+
+# Miscellaneous
+src/index.d.ts
+src/index.d.ts.map
+src/index.js
+src/index.js.map
