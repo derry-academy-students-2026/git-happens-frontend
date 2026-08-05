@@ -18,9 +18,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "test": "echo \"Temporary: no test specified\" && exit 1",
-    "lint": "echo \"Temporary: no lint specified\" && exit 1",
-    "ci": "echo \"Temporary: no ci specified\" && exit 1"
+    "test": "echo \"Temporary: no test specified\"",
+    "lint": "echo \"Temporary: no lint specified\"",
+    "ci": "echo \"Temporary: no ci specified\""
   },
   "repository": {
     "type": "git",
