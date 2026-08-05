@@ -37,7 +37,6 @@ Thumbs.db
 .foo/
 
 # Miscellaneous
-src/index.d.ts
-src/index.d.ts.map
-src/index.js
-src/index.js.map
+*.d.ts
+*.d.ts.map
+*.js.map
