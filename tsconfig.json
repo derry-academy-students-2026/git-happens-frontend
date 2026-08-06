@@ -5,17 +5,6 @@
 		"rootDir": "./src",
 		"outDir": "./dist",
 
-<<<<<<< HEAD
-		// Environment Settings
-		// See also https://aka.ms/tsconfig/module
-		"module": "nodenext",
-		"target": "esnext",
-		"types": [],
-		// For nodejs:
-		// "lib": ["esnext"],
-		// "types": ["node"],
-		// and npm install -D @types/node
-=======
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "target": "ES2022", // compile to modern JS (async/await, etc.)
@@ -25,7 +14,6 @@
     // "lib": ["esnext"],
     // "types": ["node"],
     // and npm install -D @types/node
->>>>>>> aaf1d39 (adding unit tests to the frontend)
 
 		// Other Outputs
 		"sourceMap": true,
@@ -44,17 +32,6 @@
 		// "noFallthroughCasesInSwitch": true,
 		// "noPropertyAccessFromIndexSignature": true,
 
-<<<<<<< HEAD
-		// Recommended Options
-		"strict": true,
-		"jsx": "react-jsx",
-		"verbatimModuleSyntax": true,
-		"isolatedModules": true,
-		"noUncheckedSideEffectImports": true,
-		"moduleDetection": "force",
-		"skipLibCheck": true
-	}
-=======
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
@@ -65,5 +42,4 @@
     "skipLibCheck": true,
   },
   "include": ["src/**/*"], "exclude": ["node_modules", "dist"]
->>>>>>> aaf1d39 (adding unit tests to the frontend)
 }
