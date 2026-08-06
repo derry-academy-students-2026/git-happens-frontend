@@ -1,8 +1,8 @@
-import express from "express";
+import app from "./app.js";
 
-const app = express();
 const PORT = 3000;
 
+<<<<<<< HEAD
 // Middleware
 app.use(express.json());
 
@@ -16,6 +16,8 @@ app.get("/health", (req, res) => {
 	res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
+=======
+>>>>>>> aaf1d39 (adding unit tests to the frontend)
 // Start server
 app.listen(PORT, () => {
 	console.log(`🚀 Server running on http://localhost:${PORT}`);
