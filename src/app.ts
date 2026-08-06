@@ -6,12 +6,12 @@ const app = express();
 app.use(express.json());
 
 // Root endpoint
-app.get("/", (_req, res) => {
+app.get("/", (req, res) => {
   res.json({ message: "Welcome to your API!" });
 });
 
 // Health check
-app.get("/health", (_req, res) => {
+app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
