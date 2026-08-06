@@ -23,10 +23,10 @@
 		"start": "tsx src/index.ts",
 		"test": "echo \"Temporary: no test specified\"",
 		"format": "biome format --write .",
-		"lint": "biome lint --write .",
-		"check": "biome check --write .",
+		"lint": "biome lint .",
+		"check": "biome check .",
 		"ci:check": "biome ci .",
-    "lint:fix": "biome lint --write ."
+		"lint:fix": "biome lint --write ."
 	},
 	"repository": {
 		"type": "git",
