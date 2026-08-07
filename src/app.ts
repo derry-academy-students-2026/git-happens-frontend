@@ -1,6 +1,6 @@
 import express from "express";
-import Logger from "./lib/logger.js";
 import morganMiddleware from "./config/morganMiddleware.js";
+import Logger from "./lib/logger.js";
 
 const app = express();
 
