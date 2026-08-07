@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import winston from "winston";
 
 const levels = {
@@ -15,6 +16,8 @@ const colors = {
 	debug: "white",
 };
 winston.addColors(colors);
+
+fs.mkdirSync("logs", { recursive: true });
 
 const level = () => {
 	const env = process.env.NODE_ENV || "development";
