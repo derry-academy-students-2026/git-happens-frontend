@@ -16,7 +16,9 @@ app.use(express.json());
 app.use(morganMiddleware);
 
 app.use((req, res, next) => {
-	res.locals.currentPath = req.path;
+	const normalizedPath =
+		req.path.length > 1 && req.path.endsWith("/") ? req.path.slice(0, -1) : req.path;
+	res.locals.currentPath = normalizedPath;
 	next();
 });
 
