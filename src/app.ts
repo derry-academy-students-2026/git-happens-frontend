@@ -27,7 +27,9 @@ app.use(morganMiddleware);
 
 app.use((req, res, next) => {
 	const normalizedPath =
-		req.path.length > 1 && req.path.endsWith("/") ? req.path.slice(0, -1) : req.path;
+		req.path.length > 1 && req.path.endsWith("/")
+			? req.path.slice(0, -1)
+			: req.path;
 	res.locals.currentPath = normalizedPath;
 	next();
 });

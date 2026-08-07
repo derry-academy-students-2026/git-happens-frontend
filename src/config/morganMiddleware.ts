@@ -1,6 +1,7 @@
-import morgan from "morgan";
 import type { StreamOptions } from "morgan";
+import morgan from "morgan";
 import Logger from "../lib/logger.js";
+
 // Route Morgan output through Winston's http level
 const stream: StreamOptions = {
 	write: (message) => Logger.http(message.trimEnd()),
