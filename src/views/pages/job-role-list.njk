@@ -1,0 +1,16 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Open job roles{% endblock %}
+
+{% block masthead %}
+	<section class="masthead">
+		<div class="shell">
+			<h1>Browse our opportunities</h1>
+			<p>Every role currently open for applications, with its location, capability, band and closing date.</p>
+		</div>
+	</section>
+{% endblock %}
+
+{% block content %}
+	{% include "partials/job-role-results.njk" %}
+{% endblock %}
