@@ -4,12 +4,12 @@
 		"@types/express": "^5.0.6",
 		"@types/node": "^26.1.2",
 		"@types/nunjucks": "^3.2.6",
-    "@types/supertest": "^7.2.1",
-    "@vitest/coverage-v8": "^4.1.10",
-    "supertest": "^7.2.2",
+		"@types/supertest": "^7.2.1",
+		"@vitest/coverage-v8": "^4.1.10",
+		"supertest": "^7.2.2",
 		"tsx": "^4.23.5",
 		"typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+		"vitest": "^4.1.10"
 	},
 	"name": "git-happens-frontend",
 	"version": "1.0.0",
@@ -17,26 +17,29 @@
 	"type": "module",
 	"main": "index.js",
 	"dependencies": {
+		"@types/morgan": "^1.9.10",
 		"esbuild": "^0.28.1",
 		"express": "^5.2.1",
-		"undici-types": "^8.3.0"
+		"morgan": "^1.11.0",
+		"undici-types": "^8.3.0",
+		"winston": "^3.19.0"
 	},
 	"scripts": {
 		"dev": "tsx watch src/index.ts",
 		"build": "tsc -p tsconfig.json",
 		"start": "tsx src/index.ts",
 		"test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
 		"format": "biome format --write .",
 		"lint": "biome lint .",
 		"check": "biome check .",
 		"ci:check": "biome ci .",
 		"lint:fix": "biome lint --write ."
 	},
-  "vitest": {
-    "environment": "node"
-  },
+	"vitest": {
+		"environment": "node"
+	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/derry-academy-students-2026/git-happens-frontend.git"
