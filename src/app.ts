@@ -1,15 +1,25 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import express from "express";
 import nunjucks from "nunjucks";
 import morganMiddleware from "./config/morganMiddleware.js";
 import Logger from "./lib/logger.js";
 import jobRouter from "./routes/jobRouter.js";
 
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
 const app = express();
 
-nunjucks.configure("src/views", {
+nunjucks.configure(path.join(currentDir, "views"), {
 	autoescape: true,
 	express: app,
 });
+
+app.use(
+	express.static(path.join(currentDir, "public"), {
+		maxAge: "1d",
+	}),
+);
 
 app.use(express.json());
 
