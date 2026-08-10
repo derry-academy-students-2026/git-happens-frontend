@@ -1,3 +1,6 @@
+import apiClient from "../config/apiClient";
+import axios from "axios";
+
 export type JobRole = {
 	jobRoleId: number;
 	roleName: string;
@@ -85,20 +88,16 @@ const mockBands: Band[] = [
 
 export class JobRoleService {
 	async getAllJobRoles(): Promise<JobRoleListItem[]> {
-		return mockJobRoles
-			.filter((jobRole) => jobRole.status === "open")
-			.map((jobRole) => ({
-				jobRoleId: jobRole.jobRoleId,
-				roleName: jobRole.roleName,
-				location: jobRole.location,
-				capability:
-					mockCapabilities.find(
-						(capability) => capability.capabilityId === jobRole.capabilityId,
-					)?.capabilityName ?? "Unknown",
-				band:
-					mockBands.find((band) => band.bandId === jobRole.bandId)?.bandName ??
-					"Unknown",
-				closingDate: jobRole.closingDate,
-			}));
+		try {
+			const response = await apiClient.get<JobRoleListItem[]>("/api/job-roles");
+			return response.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				const status = error.response?.status;
+				if (status === 404) throw new Error("No job roles found");
+				if (status === 500) throw new Error("Backend server error");
+			}
+			throw error;
+		}
 	}
 }
