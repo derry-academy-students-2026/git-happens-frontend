@@ -1,6 +1,6 @@
 <div class="results-bar">
-	<h2>All roles</h2>
-	<span>{{ jobRoles | length }} role{% if jobRoles | length != 1 %}s{% endif %}</span>
+	<h2 class="display display--section">All roles</h2>
+	<span class="results-bar__count">{{ jobRoles | length }} role{% if jobRoles | length != 1 %}s{% endif %}</span>
 </div>
 
 {% if jobRoles | length %}
