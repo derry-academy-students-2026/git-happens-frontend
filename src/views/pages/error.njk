@@ -1,0 +1,12 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Something went wrong{% endblock %}
+
+{% block content %}
+	<span class="section-label">Error</span>
+	<div class="notice">
+		<h1>Something went wrong</h1>
+		<p>{{ error | default("An unexpected error occurred. Please try again.") }}</p>
+		<a class="button button--ink" href="/jobs/job-roles">Back to job roles</a>
+	</div>
+{% endblock %}

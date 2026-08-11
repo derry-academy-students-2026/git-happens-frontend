@@ -19,9 +19,10 @@ winston.addColors(colors);
 
 fs.mkdirSync("logs", { recursive: true });
 
+/** Logs everything in development, down to info elsewhere. */
 const level = () => {
 	const env = process.env.NODE_ENV || "development";
-	return env === "development" ? "debug" : "warn";
+	return process.env.LOG_LEVEL || (env === "development" ? "debug" : "info");
 };
 
 const format = winston.format.combine(
@@ -43,6 +44,7 @@ const Logger = winston.createLogger({
 	levels,
 	format,
 	transports,
+	silent: process.env.NODE_ENV === "test",
 });
 
 export default Logger;

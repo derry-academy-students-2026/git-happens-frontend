@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{% block title %}Careers{% endblock %}</title>
+		<link rel="stylesheet" href="/styles.css" />
+	</head>
+	<body>
+		{% include "partials/header.njk" %}
+
+		{% block masthead %}{% endblock %}
+
+		<main class="page shell">
+			{% block content %}{% endblock %}
+		</main>
+
+		{% include "partials/footer.njk" %}
+	</body>
+</html>

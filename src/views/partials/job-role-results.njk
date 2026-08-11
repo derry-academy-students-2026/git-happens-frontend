@@ -1,0 +1,40 @@
+<div class="results-bar">
+	<h2>All roles</h2>
+	<span>{{ jobRoles | length }} role{% if jobRoles | length != 1 %}s{% endif %}</span>
+</div>
+
+{% if jobRoles | length %}
+	<ul class="job-list">
+		{% for jobRole in jobRoles %}
+			<li class="job-item">
+				<div class="job-item__heading">
+					<h3 class="job-item__title">{{ jobRole.roleName }}</h3>
+					<span class="job-status job-status--{{ jobRole.status | lower }}">
+						{{ jobRole.status }}
+					</span>
+				</div>
+
+				<dl class="job-meta">
+					<div>
+						<dt>Location</dt>
+						<dd>{{ jobRole.location }}</dd>
+					</div>
+					<div>
+						<dt>Capability</dt>
+						<dd>{{ jobRole.capability.capabilityName }}</dd>
+					</div>
+					<div>
+						<dt>Band</dt>
+						<dd>{{ jobRole.band.bandName }}</dd>
+					</div>
+					<div>
+						<dt>Closing date</dt>
+						<dd>{{ jobRole.closingDate | truncate(10, true, "") }}</dd>
+					</div>
+				</dl>
+			</li>
+		{% endfor %}
+	</ul>
+{% else %}
+	<p class="empty-state">There are no job roles to show right now.</p>
+{% endif %}
