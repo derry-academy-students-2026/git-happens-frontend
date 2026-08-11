@@ -55,4 +55,17 @@ describe("JobRoleController.getAll", () => {
 			error: "Internal Server Error",
 		});
 	});
+
+	it("renders the error page when the service rejects with a non-Error", async () => {
+		const getAllJobRoles = vi.fn().mockRejectedValue("db down");
+		const controller = new JobRoleController(createService(getAllJobRoles));
+		const res = createResponse();
+
+		await controller.getAll({} as Request, res);
+
+		expect(res.status).toHaveBeenCalledWith(500);
+		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
+			error: "Internal Server Error",
+		});
+	});
 });

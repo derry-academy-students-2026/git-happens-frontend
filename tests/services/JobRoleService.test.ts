@@ -100,4 +100,22 @@ describe("JobRoleService.getAllJobRoles", () => {
 			"socket hang up",
 		);
 	});
+
+	it("rethrows an axios error that never got a response", async () => {
+		get.mockRejectedValue(
+			new AxiosError("connect ECONNREFUSED", "ECONNREFUSED"),
+		);
+
+		await expect(new JobRoleService().getAllJobRoles()).rejects.toThrow(
+			"connect ECONNREFUSED",
+		);
+	});
+
+	it("rethrows an axios error whose status it does not handle", async () => {
+		get.mockRejectedValue(axiosErrorWithStatus(503));
+
+		await expect(new JobRoleService().getAllJobRoles()).rejects.toThrow(
+			"request failed",
+		);
+	});
 });
