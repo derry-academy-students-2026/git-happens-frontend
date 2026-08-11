@@ -7,7 +7,14 @@ import type { JobRoleListItemDTO } from "../models/jobRoleListItemDTO.js";
 
 /** Fetches job role data from the backend API and maps it for the view layer. */
 export class JobRoleService {
-	/** Returns every job role, translating API error statuses into domain errors. */
+	/**
+	 * Retrieves every job role from the backend API.
+	 *
+	 * @returns The job roles mapped into the shape the list template expects.
+	 * @throws {Error} "No job roles found" when the API responds 404.
+	 * @throws {Error} "Backend server error" when the API responds 500.
+	 * @throws {Error} The original error for any other failure, such as a timeout.
+	 */
 	async getAllJobRoles(): Promise<JobRoleListItemDTO[]> {
 		try {
 			Logger.debug("Requesting job roles from the API");

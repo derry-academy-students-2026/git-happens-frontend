@@ -32,7 +32,7 @@ describe("jobRouter", () => {
 				capability: "Engineering",
 				band: "Associate",
 				closingDate: "2026-09-04",
-				status: "open",
+				status: "Open",
 			},
 			{
 				jobRoleId: 2,
@@ -41,7 +41,7 @@ describe("jobRouter", () => {
 				capability: "Data",
 				band: "Consultant",
 				closingDate: "2026-07-01",
-				status: "closed",
+				status: "Closed",
 			},
 		]);
 
@@ -65,7 +65,7 @@ describe("jobRouter", () => {
 				capability: "Engineering",
 				band: "Associate",
 				closingDate: "2026-09-04",
-				status: "open",
+				status: "Open",
 			},
 			{
 				jobRoleId: 2,
@@ -74,7 +74,7 @@ describe("jobRouter", () => {
 				capability: "Data",
 				band: "Consultant",
 				closingDate: "2026-07-01",
-				status: "closed",
+				status: "Closed",
 			},
 		]);
 

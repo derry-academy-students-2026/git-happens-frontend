@@ -19,7 +19,7 @@ const apiJobRole = {
 	bandId: 2,
 	bandName: "Associate",
 	closingDate: "2026-09-04",
-	status: "open",
+	status: "Open",
 };
 
 function axiosErrorWithStatus(status: number) {
@@ -58,19 +58,19 @@ describe("JobRoleService.getAllJobRoles", () => {
 				capability: "Engineering",
 				band: "Associate",
 				closingDate: "2026-09-04",
-				status: "open",
+				status: "Open",
 			},
 		]);
 	});
 
 	it("returns closed roles as well as open ones", async () => {
 		get.mockResolvedValue({
-			data: [apiJobRole, { ...apiJobRole, jobRoleId: 2, status: "closed" }],
+			data: [apiJobRole, { ...apiJobRole, jobRoleId: 2, status: "Closed" }],
 		});
 
 		const result = await new JobRoleService().getAllJobRoles();
 
-		expect(result.map((role) => role.status)).toEqual(["open", "closed"]);
+		expect(result.map((role) => role.status)).toEqual(["Open", "Closed"]);
 	});
 
 	it("throws a not found message on a 404", async () => {

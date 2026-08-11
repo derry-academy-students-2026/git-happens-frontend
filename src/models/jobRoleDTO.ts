@@ -7,5 +7,5 @@ export interface JobRoleDTO {
 	bandId: number;
 	bandName: string;
 	closingDate: string;
-	status: "open" | "closed";
+	status: "Open" | "Closed";
 }

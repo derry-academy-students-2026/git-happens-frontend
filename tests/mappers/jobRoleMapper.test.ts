@@ -11,7 +11,7 @@ const jobRole: JobRoleDTO = {
 	bandId: 2,
 	bandName: "Associate",
 	closingDate: "2026-09-04T00:00:00.000Z",
-	status: "open",
+	status: "Open",
 };
 
 describe("toJobRoleListItem", () => {
@@ -23,7 +23,7 @@ describe("toJobRoleListItem", () => {
 			capability: "Engineering",
 			band: "Associate",
 			closingDate: "2026-09-04",
-			status: "open",
+			status: "Open",
 		});
 	});
 
@@ -36,9 +36,10 @@ describe("toJobRoleListItem", () => {
 		expect(listItem.closingDate).toBe("2026-08-11");
 	});
 
-	it("carries a closed status through", () => {
-		expect(toJobRoleListItem({ ...jobRole, status: "closed" }).status).toBe(
-			"closed",
+	it("passes the API status through untouched", () => {
+		expect(toJobRoleListItem(jobRole).status).toBe("Open");
+		expect(toJobRoleListItem({ ...jobRole, status: "Closed" }).status).toBe(
+			"Closed",
 		);
 	});
 

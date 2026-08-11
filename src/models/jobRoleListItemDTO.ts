@@ -5,5 +5,5 @@ export interface JobRoleListItemDTO {
 	capability: string;
 	band: string;
 	closingDate: string;
-	status: "open" | "closed";
+	status: "Open" | "Closed";
 }

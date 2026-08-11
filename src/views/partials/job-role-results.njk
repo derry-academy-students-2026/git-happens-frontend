@@ -9,8 +9,8 @@
 			<li class="job-item">
 				<div class="job-item__heading">
 					<h3 class="job-item__title">{{ jobRole.roleName }}</h3>
-					<span class="job-status job-status--{{ jobRole.status }}">
-						{{ "Open" if jobRole.status == "open" else "Closed" }}
+					<span class="job-status job-status--{{ jobRole.status | lower }}">
+						{{ jobRole.status }}
 					</span>
 				</div>
 
