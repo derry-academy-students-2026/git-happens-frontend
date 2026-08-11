@@ -6,10 +6,14 @@ const jobRole: JobRoleDTO = {
 	jobRoleId: 1,
 	roleName: "Frontend Developer",
 	location: "Derry",
-	capabilityId: 1,
-	capabilityName: "Engineering",
-	bandId: 2,
-	bandName: "Associate",
+	capability: {
+		capabilityId: 1,
+		capabilityName: "Engineering",
+	},
+	band: {
+		bandId: 2,
+		bandName: "Associate",
+	},
 	closingDate: "2026-09-04T00:00:00.000Z",
 	status: "Open",
 };
@@ -43,9 +47,11 @@ describe("toJobRoleListItem", () => {
 		);
 	});
 
-	it("does not leak ids to the view", () => {
+	it("flattens the nested capability and band objects", () => {
 		const listItem = toJobRoleListItem(jobRole);
 
+		expect(listItem.capability).toBe("Engineering");
+		expect(listItem.band).toBe("Associate");
 		expect(listItem).not.toHaveProperty("capabilityId");
 		expect(listItem).not.toHaveProperty("bandId");
 	});

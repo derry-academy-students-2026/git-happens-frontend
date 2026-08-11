@@ -2,10 +2,14 @@ export interface JobRoleDTO {
 	jobRoleId: number;
 	roleName: string;
 	location: string;
-	capabilityId: number;
-	capabilityName: string;
-	bandId: number;
-	bandName: string;
+	capability: {
+		capabilityId: number;
+		capabilityName: string;
+	};
+	band: {
+		bandId: number;
+		bandName: string;
+	};
 	closingDate: string;
 	status: "Open" | "Closed";
 }

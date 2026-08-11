@@ -14,10 +14,14 @@ const apiJobRole = {
 	jobRoleId: 1,
 	roleName: "Frontend Developer",
 	location: "Derry",
-	capabilityId: 3,
-	capabilityName: "Engineering",
-	bandId: 2,
-	bandName: "Associate",
+	capability: {
+		capabilityId: 3,
+		capabilityName: "Engineering",
+	},
+	band: {
+		bandId: 2,
+		bandName: "Associate",
+	},
 	closingDate: "2026-09-04",
 	status: "Open",
 };

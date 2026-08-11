@@ -7,8 +7,8 @@ export function toJobRoleListItem(jobRole: JobRoleDTO): JobRoleListItemDTO {
 		jobRoleId: jobRole.jobRoleId,
 		roleName: jobRole.roleName,
 		location: jobRole.location,
-		capability: jobRole.capabilityName,
-		band: jobRole.bandName,
+		capability: jobRole.capability.capabilityName,
+		band: jobRole.band.bandName,
 		closingDate: jobRole.closingDate.slice(0, 10),
 		status: jobRole.status,
 	};
