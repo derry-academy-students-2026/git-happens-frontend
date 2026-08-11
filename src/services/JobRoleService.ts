@@ -5,9 +5,9 @@ import { toJobRoleListItem } from "../mappers/jobRoleMapper.js";
 import type { JobRoleDTO } from "../models/jobRoleDTO.js";
 import type { JobRoleListItemDTO } from "../models/jobRoleListItemDTO.js";
 
-// Fetches job role data from the backend API and maps it for the view layer.
+/** Fetches job role data from the backend API and maps it for the view layer. */
 export class JobRoleService {
-	// Returns every job role, translating API error statuses into domain errors.
+	/** Returns every job role, translating API error statuses into domain errors. */
 	async getAllJobRoles(): Promise<JobRoleListItemDTO[]> {
 		try {
 			Logger.debug("Requesting job roles from the API");

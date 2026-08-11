@@ -2,11 +2,11 @@ import type { Request, Response } from "express";
 import Logger from "../lib/logger.js";
 import type { JobRoleService } from "../services/JobRoleService.js";
 
-// Handles the HTTP layer for job role pages, delegating data access to the service.
+/** Handles the HTTP layer for job role pages, delegating data access to the service. */
 export class JobRoleController {
 	constructor(private service: JobRoleService) {}
 
-	// Renders the job role list, or the error page if the service fails.
+	/** Renders the job role list, or the error page if the service fails. */
 	async getAll(_req: Request, res: Response): Promise<void> {
 		try {
 			const jobRoles = await this.service.getAllJobRoles();
