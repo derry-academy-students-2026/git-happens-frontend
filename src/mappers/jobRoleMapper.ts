@@ -1,7 +1,8 @@
-import type { JobRole } from "../models/jobRole.js";
-import type { JobRoleListItem } from "../models/jobRoleListItem.js";
+import type { JobRoleDTO } from "../models/jobRoleDTO.js";
+import type { JobRoleListItemDTO } from "../models/jobRoleListItemDTO.js";
 
-export function toJobRoleListItem(jobRole: JobRole): JobRoleListItem {
+// Converts an API job role into the flattened shape the list template renders.
+export function toJobRoleListItem(jobRole: JobRoleDTO): JobRoleListItemDTO {
 	return {
 		jobRoleId: jobRole.jobRoleId,
 		roleName: jobRole.roleName,

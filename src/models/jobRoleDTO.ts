@@ -1,4 +1,4 @@
-export interface JobRole {
+export interface JobRoleDTO {
 	jobRoleId: number;
 	roleName: string;
 	location: string;

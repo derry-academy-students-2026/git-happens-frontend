@@ -19,6 +19,7 @@ winston.addColors(colors);
 
 fs.mkdirSync("logs", { recursive: true });
 
+// Logs everything in development, warnings and errors elsewhere.
 const level = () => {
 	const env = process.env.NODE_ENV || "development";
 	return env === "development" ? "debug" : "warn";

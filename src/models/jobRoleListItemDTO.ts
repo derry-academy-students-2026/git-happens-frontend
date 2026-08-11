@@ -1,4 +1,4 @@
-export interface JobRoleListItem {
+export interface JobRoleListItemDTO {
 	jobRoleId: number;
 	roleName: string;
 	location: string;

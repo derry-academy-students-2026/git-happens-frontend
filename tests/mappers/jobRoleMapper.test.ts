@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { toJobRoleListItem } from "../../src/mappers/jobRoleMapper.js";
-import type { JobRole } from "../../src/models/jobRole.js";
+import type { JobRoleDTO } from "../../src/models/jobRoleDTO.js";
 
-const jobRole: JobRole = {
+const jobRole: JobRoleDTO = {
 	jobRoleId: 1,
 	roleName: "Frontend Developer",
 	location: "Derry",

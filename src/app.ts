@@ -26,6 +26,7 @@ app.use(express.json());
 
 app.use(morganMiddleware);
 
+// Exposes the current path to templates so the nav can mark the active link.
 app.use((req, res, next) => {
 	const normalizedPath =
 		req.path.length > 1 && req.path.endsWith("/")
@@ -35,10 +36,12 @@ app.use((req, res, next) => {
 	next();
 });
 
+// Sends visitors from the site root to the jobs section.
 app.get("/", (_req, res) => {
 	res.redirect("/jobs");
 });
 
+// Liveness probe for deployment health checks.
 app.get("/health", (_req, res) => {
 	res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
@@ -52,5 +55,9 @@ Logger.debug("This is a debug message");
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/jobs", jobRouter);
+
+Logger.debug(
+	`App configured against API ${process.env.API_BASE_URL ?? "http://localhost:4000"}`,
+);
 
 export default app;
