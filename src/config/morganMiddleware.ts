@@ -1,5 +1,4 @@
-import type { StreamOptions } from "morgan";
-import morgan from "morgan";
+import morgan, { type StreamOptions } from "morgan";
 import Logger from "../lib/logger.js";
 
 /** Routes Morgan output through Winston's http level. */

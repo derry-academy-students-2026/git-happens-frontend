@@ -11,6 +11,27 @@ vi.mock("../../src/services/JobRoleService.js", () => ({
 
 const { default: app } = await import("../../src/app.js");
 
+const jobRoles = [
+	{
+		jobRoleId: 1,
+		roleName: "Frontend Developer",
+		location: "Derry",
+		capability: { capabilityId: 3, capabilityName: "Engineering" },
+		band: { bandId: 2, bandName: "Associate" },
+		closingDate: "2026-09-04T00:00:00.000Z",
+		status: "Open",
+	},
+	{
+		jobRoleId: 2,
+		roleName: "Data Engineer",
+		location: "Belfast",
+		capability: { capabilityId: 4, capabilityName: "Data" },
+		band: { bandId: 5, bandName: "Consultant" },
+		closingDate: "2026-07-01T00:00:00.000Z",
+		status: "Closed",
+	},
+];
+
 describe("jobRouter", () => {
 	beforeEach(() => {
 		getAllJobRoles.mockReset();
@@ -24,26 +45,7 @@ describe("jobRouter", () => {
 	});
 
 	it("renders the roles returned by the service", async () => {
-		getAllJobRoles.mockResolvedValue([
-			{
-				jobRoleId: 1,
-				roleName: "Frontend Developer",
-				location: "Derry",
-				capability: "Engineering",
-				band: "Associate",
-				closingDate: "2026-09-04",
-				status: "Open",
-			},
-			{
-				jobRoleId: 2,
-				roleName: "Data Engineer",
-				location: "Belfast",
-				capability: "Data",
-				band: "Consultant",
-				closingDate: "2026-07-01",
-				status: "Closed",
-			},
-		]);
+		getAllJobRoles.mockResolvedValue(jobRoles);
 
 		const response = await request(app).get("/jobs/job-roles");
 
@@ -57,26 +59,7 @@ describe("jobRouter", () => {
 	});
 
 	it("shows the open or closed status for every role", async () => {
-		getAllJobRoles.mockResolvedValue([
-			{
-				jobRoleId: 1,
-				roleName: "Frontend Developer",
-				location: "Derry",
-				capability: "Engineering",
-				band: "Associate",
-				closingDate: "2026-09-04",
-				status: "Open",
-			},
-			{
-				jobRoleId: 2,
-				roleName: "Data Engineer",
-				location: "Belfast",
-				capability: "Data",
-				band: "Consultant",
-				closingDate: "2026-07-01",
-				status: "Closed",
-			},
-		]);
+		getAllJobRoles.mockResolvedValue(jobRoles);
 
 		const response = await request(app).get("/jobs/job-roles");
 

@@ -21,15 +21,15 @@
 					</div>
 					<div>
 						<dt>Capability</dt>
-						<dd>{{ jobRole.capability }}</dd>
+						<dd>{{ jobRole.capability.capabilityName }}</dd>
 					</div>
 					<div>
 						<dt>Band</dt>
-						<dd>{{ jobRole.band }}</dd>
+						<dd>{{ jobRole.band.bandName }}</dd>
 					</div>
 					<div>
 						<dt>Closing date</dt>
-						<dd>{{ jobRole.closingDate }}</dd>
+						<dd>{{ jobRole.closingDate | truncate(10, true, "") }}</dd>
 					</div>
 				</dl>
 			</li>

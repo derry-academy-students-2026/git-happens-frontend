@@ -49,22 +49,12 @@ describe("JobRoleService.getAllJobRoles", () => {
 		expect(get).toHaveBeenCalledWith("job-roles");
 	});
 
-	it("maps the API response to list items", async () => {
+	it("returns the API response untouched", async () => {
 		get.mockResolvedValue({ data: [apiJobRole] });
 
 		const result = await new JobRoleService().getAllJobRoles();
 
-		expect(result).toEqual([
-			{
-				jobRoleId: 1,
-				roleName: "Frontend Developer",
-				location: "Derry",
-				capability: "Engineering",
-				band: "Associate",
-				closingDate: "2026-09-04",
-				status: "Open",
-			},
-		]);
+		expect(result).toEqual([apiJobRole]);
 	});
 
 	it("returns closed roles as well as open ones", async () => {

@@ -1,26 +1,24 @@
 import axios from "axios";
 import apiClient from "../config/apiClient.js";
 import Logger from "../lib/logger.js";
-import { toJobRoleListItem } from "../mappers/jobRoleMapper.js";
 import type { JobRoleDTO } from "../models/jobRoleDTO.js";
-import type { JobRoleListItemDTO } from "../models/jobRoleListItemDTO.js";
 
-/** Fetches job role data from the backend API and maps it for the view layer. */
+/** Fetches job role data from the backend API. */
 export class JobRoleService {
 	/**
 	 * Retrieves every job role from the backend API.
 	 *
-	 * @returns The job roles mapped into the shape the list template expects.
+	 * @returns The job roles exactly as the API returns them.
 	 * @throws {Error} "No job roles found" when the API responds 404.
 	 * @throws {Error} "Backend server error" when the API responds 500.
 	 * @throws {Error} The original error for any other failure, such as a timeout.
 	 */
-	async getAllJobRoles(): Promise<JobRoleListItemDTO[]> {
+	async getAllJobRoles(): Promise<JobRoleDTO[]> {
 		try {
 			Logger.debug("Requesting job roles from the API");
 			const response = await apiClient.get<JobRoleDTO[]>("job-roles");
 			Logger.info(`API returned ${response.data.length} job roles`);
-			return response.data.map(toJobRoleListItem);
+			return response.data;
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				const status = error.response?.status;

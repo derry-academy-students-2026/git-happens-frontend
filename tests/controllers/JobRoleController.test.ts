@@ -8,9 +8,9 @@ const jobRoles = [
 		jobRoleId: 1,
 		roleName: "Frontend Developer",
 		location: "Derry",
-		capability: "Engineering",
-		band: "Associate",
-		closingDate: "2026-09-04",
+		capability: { capabilityId: 3, capabilityName: "Engineering" },
+		band: { bandId: 2, bandName: "Associate" },
+		closingDate: "2026-09-04T00:00:00.000Z",
 		status: "Open",
 	},
 ];
