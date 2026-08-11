@@ -1,5 +1,5 @@
 <div class="results-bar">
-	<h2>Open roles</h2>
+	<h2>All roles</h2>
 	<span>{{ jobRoles | length }} role{% if jobRoles | length != 1 %}s{% endif %}</span>
 </div>
 
@@ -7,7 +7,12 @@
 	<ul class="job-list">
 		{% for jobRole in jobRoles %}
 			<li class="job-item">
-				<h3 class="job-item__title">{{ jobRole.roleName }}</h3>
+				<div class="job-item__heading">
+					<h3 class="job-item__title">{{ jobRole.roleName }}</h3>
+					<span class="job-status job-status--{{ jobRole.status }}">
+						{{ "Open" if jobRole.status == "open" else "Closed" }}
+					</span>
+				</div>
 
 				<dl class="job-meta">
 					<div>
@@ -31,5 +36,5 @@
 		{% endfor %}
 	</ul>
 {% else %}
-	<p class="empty-state">There are no open job roles right now.</p>
+	<p class="empty-state">There are no job roles to show right now.</p>
 {% endif %}

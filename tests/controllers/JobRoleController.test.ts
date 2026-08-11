@@ -11,6 +11,7 @@ const jobRoles = [
 		capability: "Engineering",
 		band: "Associate",
 		closingDate: "2026-09-04",
+		status: "open",
 	},
 ];
 

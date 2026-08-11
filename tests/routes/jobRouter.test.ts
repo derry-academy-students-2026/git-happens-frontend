@@ -32,6 +32,16 @@ describe("jobRouter", () => {
 				capability: "Engineering",
 				band: "Associate",
 				closingDate: "2026-09-04",
+				status: "open",
+			},
+			{
+				jobRoleId: 2,
+				roleName: "Data Engineer",
+				location: "Belfast",
+				capability: "Data",
+				band: "Consultant",
+				closingDate: "2026-07-01",
+				status: "closed",
 			},
 		]);
 
@@ -43,7 +53,37 @@ describe("jobRouter", () => {
 		expect(response.text).toContain("Engineering");
 		expect(response.text).toContain("Associate");
 		expect(response.text).toContain("2026-09-04");
-		expect(response.text).toContain("1 role");
+		expect(response.text).toContain("2 roles");
+	});
+
+	it("shows the open or closed status for every role", async () => {
+		getAllJobRoles.mockResolvedValue([
+			{
+				jobRoleId: 1,
+				roleName: "Frontend Developer",
+				location: "Derry",
+				capability: "Engineering",
+				band: "Associate",
+				closingDate: "2026-09-04",
+				status: "open",
+			},
+			{
+				jobRoleId: 2,
+				roleName: "Data Engineer",
+				location: "Belfast",
+				capability: "Data",
+				band: "Consultant",
+				closingDate: "2026-07-01",
+				status: "closed",
+			},
+		]);
+
+		const response = await request(app).get("/jobs/job-roles");
+
+		expect(response.text).toContain("job-status--open");
+		expect(response.text).toContain("job-status--closed");
+		expect(response.text).toContain("Data Engineer");
+		expect(response.text).toContain("2026-07-01");
 	});
 
 	it("renders an empty state when there are no open roles", async () => {
@@ -52,7 +92,9 @@ describe("jobRouter", () => {
 		const response = await request(app).get("/jobs/job-roles");
 
 		expect(response.status).toBe(200);
-		expect(response.text).toContain("There are no open job roles right now.");
+		expect(response.text).toContain(
+			"There are no job roles to show right now.",
+		);
 	});
 
 	it("renders the error page when the service fails", async () => {
