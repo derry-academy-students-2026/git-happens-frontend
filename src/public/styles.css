@@ -130,7 +130,7 @@ img {
 	font-weight: 700;
 	letter-spacing: 0.2em;
 	text-transform: uppercase;
-	color: var(--kainos-green);
+	color: var(--kainos-dark-green);
 }
 
 .lede {
@@ -401,7 +401,7 @@ img {
 	font-weight: 700;
 	letter-spacing: 0.16em;
 	text-transform: uppercase;
-	color: var(--kainos-green);
+	color: var(--kainos-dark-green);
 }
 
 .job-meta dd {
@@ -496,15 +496,6 @@ img {
 	border-left: 5px solid var(--kainos-orange);
 	background: var(--wash);
 	border-radius: 4px;
-}
-
-.notice h1 {
-	margin: 0 0 0.75rem;
-	font-family: var(--font-display);
-	font-size: 1.9rem;
-	font-weight: 700;
-	text-transform: uppercase;
-	color: var(--kainos-blue);
 }
 
 .notice h2 {
