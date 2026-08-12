@@ -23,7 +23,14 @@ const apiJobRole = {
 		bandName: "Associate",
 	},
 	closingDate: "2026-09-04",
-	status: "Open",
+	status: {
+		statusId: 1,
+		statusName: "Open",
+	},
+	description: "Build and maintain our customer-facing web applications.",
+	responsibilities: "Write code. Review pull requests. Fix bugs.",
+	sharepointUrl: "https://kainos.sharepoint.com/job-specs/1",
+	numberOfOpenPositions: 2,
 };
 
 function axiosErrorWithStatus(status: number) {
@@ -59,12 +66,22 @@ describe("JobRoleService.getAllJobRoles", () => {
 
 	it("returns closed roles as well as open ones", async () => {
 		get.mockResolvedValue({
-			data: [apiJobRole, { ...apiJobRole, jobRoleId: 2, status: "Closed" }],
+			data: [
+				apiJobRole,
+				{
+					...apiJobRole,
+					jobRoleId: 2,
+					status: { statusId: 2, statusName: "Closed" },
+				},
+			],
 		});
 
 		const result = await new JobRoleService().getAllJobRoles();
 
-		expect(result.map((role) => role.status)).toEqual(["Open", "Closed"]);
+		expect(result.map((role) => role.status.statusName)).toEqual([
+			"Open",
+			"Closed",
+		]);
 	});
 
 	it("throws a not found message on a 404", async () => {
@@ -105,6 +122,60 @@ describe("JobRoleService.getAllJobRoles", () => {
 		get.mockRejectedValue(axiosErrorWithStatus(503));
 
 		await expect(new JobRoleService().getAllJobRoles()).rejects.toThrow(
+			"request failed",
+		);
+	});
+});
+
+describe("JobRoleService.getJobRoleById", () => {
+	beforeEach(() => {
+		get.mockReset();
+	});
+
+	it("requests the endpoint for the given id", async () => {
+		get.mockResolvedValue({ data: apiJobRole });
+
+		await new JobRoleService().getJobRoleById(1);
+
+		expect(get).toHaveBeenCalledWith("job-roles/1");
+	});
+
+	it("returns the API response untouched", async () => {
+		get.mockResolvedValue({ data: apiJobRole });
+
+		const result = await new JobRoleService().getJobRoleById(1);
+
+		expect(result).toEqual(apiJobRole);
+	});
+
+	it("throws a not found message on a 404", async () => {
+		get.mockRejectedValue(axiosErrorWithStatus(404));
+
+		await expect(new JobRoleService().getJobRoleById(99)).rejects.toThrow(
+			"Job role not found",
+		);
+	});
+
+	it("throws a server error message on a 500", async () => {
+		get.mockRejectedValue(axiosErrorWithStatus(500));
+
+		await expect(new JobRoleService().getJobRoleById(1)).rejects.toThrow(
+			"Backend server error",
+		);
+	});
+
+	it("rethrows errors it does not recognise", async () => {
+		get.mockRejectedValue(new Error("socket hang up"));
+
+		await expect(new JobRoleService().getJobRoleById(1)).rejects.toThrow(
+			"socket hang up",
+		);
+	});
+
+	it("rethrows an axios error whose status it does not handle", async () => {
+		get.mockRejectedValue(axiosErrorWithStatus(503));
+
+		await expect(new JobRoleService().getJobRoleById(1)).rejects.toThrow(
 			"request failed",
 		);
 	});
