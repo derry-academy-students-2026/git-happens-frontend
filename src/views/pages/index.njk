@@ -5,13 +5,48 @@
 {% block masthead %}
 	<section class="masthead">
 		<div class="shell">
-			<h1>Your next role starts here</h1>
-			<p>Browse the roles we currently have open across our capabilities and locations.</p>
+			<span class="section-label">Careers at Kainos</span>
+			<h1 class="display display--hero">Your Kainos story starts here</h1>
+			<p class="lede">
+				We use technology to make people&rsquo;s lives easier and make the world
+				a little better, day by day. Find the role where your story begins.
+			</p>
 
 			<div class="masthead__actions">
 				<a class="button button--solid" href="/jobs/job-roles">Browse open roles</a>
+				<a class="button button--ghost" href="https://careers.kainos.com/gb/en" target="_blank" rel="noopener noreferrer">Life at Kainos</a>
 			</div>
 		</div>
 	</section>
 {% endblock %}
 
+{% block content %}
+	<span class="section-label">Long story short</span>
+	<h2 class="display display--page">True partners change the world together</h2>
+	<p class="lede">
+		Since 1986 we have taken on the digital transformation challenges that
+		others shy away from. We look for talented people who are good at solving
+		problems and want to change the world through technology.
+	</p>
+
+	<div class="stat-strip">
+		<div class="stat">
+			<span class="stat__value">1986</span>
+			<span class="stat__label">Solving problems since</span>
+		</div>
+		<div class="stat">
+			<span class="stat__value">3,000+</span>
+			<span class="stat__label">People around the world</span>
+		</div>
+		<div class="stat">
+			<span class="stat__value">10+</span>
+			<span class="stat__label">Global locations</span>
+		</div>
+		<div class="stat">
+			<span class="stat__value">50%+</span>
+			<span class="stat__label">Of our exec team started as graduates</span>
+		</div>
+	</div>
+
+	{% include "partials/culture.njk" %}
+{% endblock %}

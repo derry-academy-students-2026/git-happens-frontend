@@ -60,3 +60,21 @@ Linting and formatting are handled by [Biome](https://biomejs.dev/).
 | `npm run format` | Format all files in place. |
 | `npm run check` | Run lint + format checks together. |
 | `npm run ci:check` | Non-writing check intended for CI. |
+
+## Development Notes
+
+When adding new pages, templates, components, or CSS, use the Kainos Brand Enforcer
+skill to keep the UI aligned with Kainos branding. The skill includes the brand
+rules, approved colours, logo usage, typography guidance, UI patterns, and
+cross-framework implementation notes.
+
+For UI work, load the skill's `references/brand-rules.md` and
+`references/ui-branding.md` before making design changes. Use the bundled Kainos
+logos from `references/assets/logos/`, copy the appropriate logo into this
+project's static assets, and keep branding changes in Nunjucks templates, CSS,
+assets, and display copy unless behaviour genuinely needs to change.
+
+New pages should reuse the existing layout, header, footer, spacing, and button
+patterns where possible. Use the exact Kainos palette values from the skill, keep
+secondary colours as accents only, and verify responsive layout, contrast, and
+focus states before merging.

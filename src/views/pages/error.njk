@@ -2,10 +2,18 @@
 
 {% block title %}Something went wrong{% endblock %}
 
+{% block masthead %}
+	<section class="masthead masthead--compact">
+		<div class="shell">
+			<span class="section-label">Careers at Kainos</span>
+			<h1 class="display display--page">Something went wrong</h1>
+		</div>
+	</section>
+{% endblock %}
+
 {% block content %}
-	<span class="section-label">Error</span>
 	<div class="notice">
-		<h1>Something went wrong</h1>
+		<h2>We could not load that page</h2>
 		<p>{{ error | default("An unexpected error occurred. Please try again.") }}</p>
 		<a class="button button--ink" href="/jobs/job-roles">Back to job roles</a>
 	</div>

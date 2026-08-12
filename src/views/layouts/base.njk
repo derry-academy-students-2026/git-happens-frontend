@@ -3,15 +3,19 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>{% block title %}Careers{% endblock %}</title>
-		<link rel="stylesheet" href="/styles.css" />
+		<meta name="theme-color" content="#283583" />
+		<title>{% block title %}Careers{% endblock %} | Kainos</title>
+		{# Bump v= on every styles.css change, or browsers keep the old file. #}
+		<link rel="stylesheet" href="/styles.css?v=1" />
 	</head>
 	<body>
+		<a class="skip-link" href="#main">Skip to main content</a>
+
 		{% include "partials/header.njk" %}
 
 		{% block masthead %}{% endblock %}
 
-		<main class="page shell">
+		<main class="page shell" id="main">
 			{% block content %}{% endblock %}
 		</main>
 
