@@ -231,7 +231,7 @@ describe("jobRouter", () => {
 		});
 
 		expect(response.status).toBe(400);
-		expect(response.text).toContain("Email must be a valid email format");
+		expect(response.text).toContain("Please enter your email and password.");
 	});
 
 	it("logs out by clearing the jwt cookie and redirecting to jobs", async () => {

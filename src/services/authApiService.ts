@@ -32,6 +32,26 @@ export interface AuthApiService {
 /** Service class for handling authentication API calls. */
 export class AuthApiServiceImpl implements AuthApiService {
 	/**
+	 * Masks an email address for logs by keeping only the first character and domain.
+	 *
+	 * @param email - Raw email address used by the auth request.
+	 * @returns Masked email like `a*****@example.com`.
+	 */
+	private maskEmailForLogs(email: string): string {
+		const trimmedEmail = email.trim();
+		if (!trimmedEmail) {
+			return "*****";
+		}
+
+		const atIndex = trimmedEmail.indexOf("@");
+		if (atIndex <= 0) {
+			return `${trimmedEmail[0]}*****`;
+		}
+
+		return `${trimmedEmail[0]}*****${trimmedEmail.slice(atIndex)}`;
+	}
+
+	/**
 	 * Calls the backend login endpoint and returns a JWT payload.
 	 *
 	 * @param email - User email submitted from the login form.
@@ -41,7 +61,8 @@ export class AuthApiServiceImpl implements AuthApiService {
 	 */
 	async login(email: string, password: string): Promise<{ token: string }> {
 		const loginPath = process.env.AUTH_LOGIN_PATH ?? "/auth/login";
-		Logger.debug(`Calling login API path ${loginPath} for ${email.trim()}`);
+		const maskedEmail = this.maskEmailForLogs(email);
+		Logger.debug(`Calling login API path ${loginPath} for ${maskedEmail}`);
 
 		try {
 			const response = await apiClient.post<{ token: string }>(loginPath, {
@@ -54,7 +75,7 @@ export class AuthApiServiceImpl implements AuthApiService {
 				throw new AuthApiError("Login response did not include a token", 500);
 			}
 
-			Logger.info(`Login API call succeeded for ${email.trim()}`);
+			Logger.info(`Login API call succeeded for ${maskedEmail}`);
 
 			return response.data;
 		} catch (error) {
@@ -62,7 +83,7 @@ export class AuthApiServiceImpl implements AuthApiService {
 				const status = error.response?.status;
 				const message = (error.response?.data as ApiError | undefined)?.message;
 				Logger.warn(
-					`Login API call failed for ${email.trim()} with status ${status ?? "none"}`,
+					`Login API call failed for ${maskedEmail} with status ${status ?? "none"}`,
 				);
 
 				if (status === 400 || status === 401) {

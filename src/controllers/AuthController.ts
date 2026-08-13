@@ -10,6 +10,26 @@ type ErrorWithStatusCode = Error & {
 export class AuthController {
 	constructor(private authApiService: AuthApiService) {}
 
+	/**
+	 * Masks an email address for logs by keeping only the first character and domain.
+	 *
+	 * @param email - Raw email address submitted by the user.
+	 * @returns Masked email like `a*****@example.com`.
+	 */
+	private maskEmailForLogs(email: string): string {
+		const trimmedEmail = email.trim();
+		if (!trimmedEmail) {
+			return "*****";
+		}
+
+		const atIndex = trimmedEmail.indexOf("@");
+		if (atIndex <= 0) {
+			return `${trimmedEmail[0]}*****`;
+		}
+
+		return `${trimmedEmail[0]}*****${trimmedEmail.slice(atIndex)}`;
+	}
+
 	/** Displays the login page. */
 	showLogin(req: Request, res: Response): void {
 		const returnTo =
@@ -33,18 +53,30 @@ export class AuthController {
 		const email = typeof req.body.email === "string" ? req.body.email : "";
 		const password =
 			typeof req.body.password === "string" ? req.body.password : "";
+		const trimmedEmail = email.trim();
+		const trimmedPassword = password.trim();
+		const maskedEmail = this.maskEmailForLogs(trimmedEmail);
 		const returnTo =
 			typeof req.body.returnTo === "string" && req.body.returnTo
 				? req.body.returnTo
 				: "/jobs/job-roles";
-		const loginValidation = LoginSchema.safeParse({ email: email.trim() });
+
+		if (!trimmedEmail && !trimmedPassword) {
+			Logger.warn("Rejected login with empty email and password");
+			res.status(400).render("pages/login.njk", {
+				error: "Please enter your email and password.",
+				email,
+				returnTo,
+			});
+			return;
+		}
+
+		const loginValidation = LoginSchema.safeParse({ email: trimmedEmail });
 
 		if (!loginValidation.success) {
-			Logger.warn(`Rejected login with invalid email format: ${email.trim()}`);
-			res.status(400).render("pages/login.njk", {
-				error:
-					loginValidation.error.issues[0]?.message ??
-					"Email must be a valid email format",
+			Logger.warn(`Rejected login with invalid email format: ${maskedEmail}`);
+			res.status(401).render("pages/login.njk", {
+				error: "Invalid email or password.",
 				email,
 				returnTo,
 			});
@@ -52,7 +84,7 @@ export class AuthController {
 		}
 
 		try {
-			Logger.info(`Attempting login for ${email.trim()}`);
+			Logger.info(`Attempting login for ${maskedEmail}`);
 			const { token } = await this.authApiService.login(email, password);
 			res.cookie("jwt", token, {
 				httpOnly: true,
@@ -60,17 +92,17 @@ export class AuthController {
 				secure: process.env.NODE_ENV === "production",
 				path: "/",
 			});
-			Logger.info(`Login successful for ${email.trim()}`);
+			Logger.info(`Login successful for ${maskedEmail}`);
 			res.redirect(returnTo);
 		} catch (error) {
 			const typedError = error as ErrorWithStatusCode;
 			const statusCode = typedError.statusCode ?? 500;
 			Logger.error(
-				`Login failed for ${email.trim()} with status ${statusCode}: ${typedError.message}`,
+				`Login failed for ${maskedEmail} with status ${statusCode}: ${typedError.message}`,
 			);
 			const errorMessage =
 				statusCode === 401
-					? "Please enter your email and password."
+					? "Invalid email or password."
 					: "We couldn't log you in right now. Please try again.";
 			res.status(statusCode).render("pages/login.njk", {
 				error: errorMessage,

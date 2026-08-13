@@ -47,15 +47,27 @@ describe("authRouter", () => {
 		expect(response.text).toContain("Registration successful. Please log in.");
 	});
 
-	it("returns validation error for invalid login email", async () => {
+	it("returns invalid credentials for invalid login email", async () => {
 		const response = await request(app).post("/auth/login").type("form").send({
 			email: "not-an-email",
 			password: "whatever",
 			returnTo: "/jobs/job-roles",
 		});
 
+		expect(response.status).toBe(401);
+		expect(response.text).toContain("Invalid email or password.");
+		expect(mockLogin).not.toHaveBeenCalled();
+	});
+
+	it("shows empty-credentials message when both login fields are blank", async () => {
+		const response = await request(app).post("/auth/login").type("form").send({
+			email: "",
+			password: "",
+			returnTo: "/jobs/job-roles",
+		});
+
 		expect(response.status).toBe(400);
-		expect(response.text).toContain("Email must be a valid email format");
+		expect(response.text).toContain("Please enter your email and password.");
 		expect(mockLogin).not.toHaveBeenCalled();
 	});
 
