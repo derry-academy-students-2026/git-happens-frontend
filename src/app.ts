@@ -5,6 +5,7 @@ import express from "express";
 import nunjucks from "nunjucks";
 import morganMiddleware from "./config/morganMiddleware.js";
 import Logger from "./lib/logger.js";
+import authRouter from "./routes/authRouter.js";
 import jobRouter from "./routes/jobRouter.js";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -55,6 +56,7 @@ Logger.debug("This is a debug message");
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/jobs", jobRouter);
+app.use("/auth", authRouter);
 
 Logger.debug(
 	`App configured against API ${process.env.API_BASE_URL || "http://localhost:4000"}`,

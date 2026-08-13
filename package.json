@@ -25,7 +25,8 @@
 		"morgan": "^1.11.0",
 		"nunjucks": "^3.2.4",
 		"undici-types": "^8.3.0",
-		"winston": "^3.19.0"
+		"winston": "^3.19.0",
+		"zod": "^3.23.8"
 	},
 	"scripts": {
 		"dev": "tsx watch src/index.ts",
