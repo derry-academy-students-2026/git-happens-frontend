@@ -1,12 +1,14 @@
 import type { Request, Response } from "express";
 import { RegisterSchema } from "../dtos/authDto.js";
-import * as authApiService from "../services/authApiService.js";
+import type { AuthApiService } from "../services/authApiService.js";
 
 type ErrorWithStatusCode = Error & {
 	statusCode?: number;
 };
 
 export class AuthController {
+	constructor(private authApiService: AuthApiService) {}
+
 	/** Displays the registration page. */
 	showRegister(_req: Request, res: Response): void {
 		res.render("pages/register.njk", {
@@ -41,7 +43,7 @@ export class AuthController {
 		}
 
 		try {
-			const registeredUser = await authApiService.register(email, password);
+			const registeredUser = await this.authApiService.register(email, password);
 			res.status(201).render("pages/register.njk", {
 				successMessage: "Registration successful",
 				registeredUser,

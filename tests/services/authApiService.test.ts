@@ -8,7 +8,9 @@ vi.mock("../../src/config/apiClient.js", () => ({
 	apiClient: { post },
 }));
 
-const { register } = await import("../../src/services/authApiService.js");
+const { AuthApiServiceImpl } = await import(
+	"../../src/services/authApiService.js"
+);
 
 function axiosErrorWithStatus(status: number, data?: object) {
 	return new AxiosError("request failed", "ERR_BAD_RESPONSE", undefined, null, {
@@ -20,12 +22,14 @@ function axiosErrorWithStatus(status: number, data?: object) {
 	});
 }
 
-describe("authApiService.register", () => {
+describe("AuthApiServiceImpl.register", () => {
 	const originalRegisterPath = process.env.AUTH_REGISTER_PATH;
+	let authApiService: AuthApiServiceImpl;
 
 	beforeEach(() => {
 		post.mockReset();
 		delete process.env.AUTH_REGISTER_PATH;
+		authApiService = new AuthApiServiceImpl();
 	});
 
 	afterEach(() => {
@@ -46,7 +50,7 @@ describe("authApiService.register", () => {
 			},
 		});
 
-		await register("user@example.com", "GoodPass!9");
+		await authApiService.register("user@example.com", "GoodPass!9");
 
 		expect(post).toHaveBeenCalledWith("/auth/register", {
 			email: "user@example.com",
@@ -64,7 +68,7 @@ describe("authApiService.register", () => {
 			},
 		});
 
-		await register("user@example.com", "GoodPass!9");
+		await authApiService.register("user@example.com", "GoodPass!9");
 
 		expect(post).toHaveBeenCalledWith("/v2/auth/register", {
 			email: "user@example.com",
@@ -81,7 +85,7 @@ describe("authApiService.register", () => {
 			},
 		});
 
-		const result = await register("user@example.com", "GoodPass!9");
+		const result = await authApiService.register("user@example.com", "GoodPass!9");
 
 		expect(result).toEqual({
 			email: "user@example.com",
@@ -97,9 +101,9 @@ describe("authApiService.register", () => {
 			}),
 		);
 
-		await expect(register("bad-email", "GoodPass!9")).rejects.toThrow(
-			"Email must be a valid email format",
-		);
+		await expect(
+			authApiService.register("bad-email", "GoodPass!9"),
+		).rejects.toThrow("Email must be a valid email format");
 	});
 
 	it("throws the backend message for 409 errors", async () => {
@@ -109,24 +113,24 @@ describe("authApiService.register", () => {
 			}),
 		);
 
-		await expect(register("user@example.com", "GoodPass!9")).rejects.toThrow(
-			"An account with this email already exists",
-		);
+		await expect(
+			authApiService.register("user@example.com", "GoodPass!9"),
+		).rejects.toThrow("An account with this email already exists");
 	});
 
 	it("throws a generic message for unexpected axios statuses", async () => {
 		post.mockRejectedValue(axiosErrorWithStatus(500));
 
-		await expect(register("user@example.com", "GoodPass!9")).rejects.toThrow(
-			"Unexpected error while registering",
-		);
+		await expect(
+			authApiService.register("user@example.com", "GoodPass!9"),
+		).rejects.toThrow("Unexpected error while registering");
 	});
 
 	it("rethrows non-axios errors", async () => {
 		post.mockRejectedValue(new Error("network disconnected"));
 
-		await expect(register("user@example.com", "GoodPass!9")).rejects.toThrow(
-			"network disconnected",
-		);
+		await expect(
+			authApiService.register("user@example.com", "GoodPass!9"),
+		).rejects.toThrow("network disconnected");
 	});
 });

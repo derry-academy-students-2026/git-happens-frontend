@@ -1,17 +1,19 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { register } = vi.hoisted(() => ({ register: vi.fn() }));
+const mockRegister = vi.fn();
 
 vi.mock("../../src/services/authApiService.js", () => ({
-	register,
+	AuthApiServiceImpl: class {
+		register = mockRegister;
+	},
 }));
 
 const { default: app } = await import("../../src/app.js");
 
 describe("authRouter", () => {
 	beforeEach(() => {
-		register.mockReset();
+		mockRegister.mockReset();
 	});
 
 	it("renders the registration page", async () => {
@@ -33,7 +35,7 @@ describe("authRouter", () => {
 
 		expect(response.status).toBe(400);
 		expect(response.text).toContain("Email must be a valid email format");
-		expect(register).not.toHaveBeenCalled();
+		expect(mockRegister).not.toHaveBeenCalled();
 	});
 
 	it("returns validation errors for weak password", async () => {
@@ -50,11 +52,11 @@ describe("authRouter", () => {
 		expect(response.text).toContain(
 			"Password must be more than 8 characters long",
 		);
-		expect(register).not.toHaveBeenCalled();
+		expect(mockRegister).not.toHaveBeenCalled();
 	});
 
 	it("renders success details after a successful registration", async () => {
-		register.mockResolvedValue({
+		mockRegister.mockResolvedValue({
 			email: "user@example.com",
 			role: "user",
 			createdAt: "2026-08-13T10:00:00.000Z",
@@ -82,7 +84,7 @@ describe("authRouter", () => {
 			statusCode?: number;
 		};
 		duplicateError.statusCode = 409;
-		register.mockRejectedValue(duplicateError);
+		mockRegister.mockRejectedValue(duplicateError);
 
 		const response = await request(app)
 			.post("/auth/register")
@@ -106,7 +108,7 @@ describe("authRouter", () => {
 			statusCode?: number;
 		};
 		unexpectedError.statusCode = 500;
-		register.mockRejectedValue(unexpectedError);
+		mockRegister.mockRejectedValue(unexpectedError);
 
 		const response = await request(app)
 			.post("/auth/register")
@@ -133,6 +135,6 @@ describe("authRouter", () => {
 
 		expect(response.status).toBe(400);
 		expect(response.text).toContain("Passwords do not match");
-		expect(register).not.toHaveBeenCalled();
+		expect(mockRegister).not.toHaveBeenCalled();
 	});
 });
