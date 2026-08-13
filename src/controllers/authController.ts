@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { RegisterSchema } from "../dtos/authDto.js";
+import { LoginSchema, RegisterSchema } from "../dtos/authDto.js";
 import type { AuthApiService } from "../services/authApiService.js";
 
 type ErrorWithStatusCode = Error & {
@@ -26,7 +26,7 @@ export class AuthController {
 		});
 	}
 
-	/** Handles mocked login submission and stores JWT in the browser session cookie. */
+	/** Handles login submission and stores JWT in the browser session cookie. */
 	async login(req: Request, res: Response): Promise<void> {
 		const email = typeof req.body.email === "string" ? req.body.email : "";
 		const password =
@@ -35,6 +35,18 @@ export class AuthController {
 			typeof req.body.returnTo === "string" && req.body.returnTo
 				? req.body.returnTo
 				: "/jobs/job-roles";
+		const loginValidation = LoginSchema.safeParse({ email: email.trim() });
+
+		if (!loginValidation.success) {
+			res.status(400).render("pages/login.njk", {
+				error:
+					loginValidation.error.issues[0]?.message ??
+					"Email must be a valid email format",
+				email,
+				returnTo,
+			});
+			return;
+		}
 
 		try {
 			const { token } = await this.authApiService.login(email, password);

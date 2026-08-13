@@ -19,7 +19,7 @@ describe("authRouter", () => {
 		mockRegister.mockReset();
 		mockLogin.mockReset();
 		mockLogin.mockResolvedValue({
-			token: "mock-jwt-token-for-user@example.com",
+			token: "test-auth-token",
 		});
 	});
 
@@ -45,6 +45,18 @@ describe("authRouter", () => {
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Registration successful. Please log in.");
+	});
+
+	it("returns validation error for invalid login email", async () => {
+		const response = await request(app).post("/auth/login").type("form").send({
+			email: "not-an-email",
+			password: "whatever",
+			returnTo: "/jobs/job-roles",
+		});
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Email must be a valid email format");
+		expect(mockLogin).not.toHaveBeenCalled();
 	});
 
 	it("returns validation errors for invalid email", async () => {

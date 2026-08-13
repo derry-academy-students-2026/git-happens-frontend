@@ -5,6 +5,7 @@ import Logger from "../lib/logger.js";
 
 type ApiError = {
 	message?: string;
+	token?: string;
 };
 
 export class AuthApiError extends Error {
@@ -25,27 +26,53 @@ export interface AuthApiService {
 
 /** Service class for handling authentication API calls. */
 export class AuthApiServiceImpl implements AuthApiService {
-	/**
-	 * Mock login for now. Uses non-empty credentials and returns a placeholder JWT.
-	 */
+	/** Calls the backend login endpoint and returns a JWT payload. */
 	async login(email: string, password: string): Promise<{ token: string }> {
-		const normalizedEmail = email.trim();
-		const normalizedPassword = password.trim();
+		const loginPath = process.env.AUTH_LOGIN_PATH ?? "/auth/login";
 
-		if (!normalizedEmail || !normalizedPassword) {
-			Logger.warn("Rejected login attempt with missing credentials");
-			throw new AuthApiError("Invalid credentials", 401);
+		try {
+			const response = await apiClient.post<{ token: string }>(loginPath, {
+				email,
+				password,
+			});
+
+			if (!response.data?.token) {
+				throw new AuthApiError("Login response did not include a token", 500);
+			}
+
+			return response.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				const status = error.response?.status;
+				const message = (error.response?.data as ApiError | undefined)?.message;
+
+				if (status === 400 || status === 401) {
+					throw new AuthApiError(message ?? "Invalid credentials", 401);
+				}
+
+				throw new AuthApiError("Unexpected error while logging in", 500);
+			}
+
+			throw error;
 		}
-
-		Logger.info(`Mock login accepted for ${normalizedEmail}`);
-		return { token: `mock-jwt-token-for-${normalizedEmail}` };
 	}
 
-	/**
-	 * Mock logout for now. Real implementation may invalidate the token server-side.
-	 */
+	/** Calls the backend logout endpoint. */
 	async logout(): Promise<void> {
-		Logger.info("Mock logout requested");
+		const logoutPath = process.env.AUTH_LOGOUT_PATH ?? "/auth/logout";
+
+		try {
+			await apiClient.post(logoutPath);
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				Logger.warn(
+					"Logout endpoint unreachable; proceeding with local logout",
+				);
+				return;
+			}
+
+			throw error;
+		}
 	}
 
 	/** Calls the backend register endpoint and returns the created user payload. */

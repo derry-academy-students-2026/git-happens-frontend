@@ -1,6 +1,13 @@
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const { post } = vi.hoisted(() => ({ post: vi.fn() }));
+
+vi.mock("../../src/config/apiClient.js", () => ({
+	default: { post },
+	apiClient: { post },
+}));
+
 const { getAllJobRoles, getJobRoleById } = vi.hoisted(() => ({
 	getAllJobRoles: vi.fn(),
 	getJobRoleById: vi.fn(),
@@ -48,6 +55,10 @@ describe("jobRouter", () => {
 	beforeEach(() => {
 		getAllJobRoles.mockReset();
 		getJobRoleById.mockReset();
+		post.mockReset();
+		post.mockResolvedValue({
+			data: { token: "jwt-token-for-tests" },
+		});
 	});
 
 	it("renders the index page", async () => {
@@ -219,8 +230,8 @@ describe("jobRouter", () => {
 			password: "",
 		});
 
-		expect(response.status).toBe(401);
-		expect(response.text).toContain("Please enter your email and password.");
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Email must be a valid email format");
 	});
 
 	it("logs out by clearing the jwt cookie and redirecting to jobs", async () => {

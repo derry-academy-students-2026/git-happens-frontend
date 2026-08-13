@@ -1,5 +1,6 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { AuthApiService } from "../../src/services/authApiService.js";
 
 const { post } = vi.hoisted(() => ({ post: vi.fn() }));
 
@@ -24,7 +25,7 @@ function axiosErrorWithStatus(status: number, data?: object) {
 
 describe("AuthApiServiceImpl.register", () => {
 	const originalRegisterPath = process.env.AUTH_REGISTER_PATH;
-	let authApiService: AuthApiServiceImpl;
+	let authApiService: AuthApiService;
 
 	beforeEach(() => {
 		post.mockReset();
@@ -139,48 +140,131 @@ describe("AuthApiServiceImpl.register", () => {
 });
 
 describe("AuthApiServiceImpl.login", () => {
-	let authApiService: AuthApiServiceImpl;
+	const originalLoginPath = process.env.AUTH_LOGIN_PATH;
+	let authApiService: AuthApiService;
 
 	beforeEach(() => {
+		post.mockReset();
+		delete process.env.AUTH_LOGIN_PATH;
 		authApiService = new AuthApiServiceImpl();
 	});
 
-	it("returns a mock token for non-empty credentials", async () => {
+	afterEach(() => {
+		if (originalLoginPath === undefined) {
+			delete process.env.AUTH_LOGIN_PATH;
+			return;
+		}
+
+		process.env.AUTH_LOGIN_PATH = originalLoginPath;
+	});
+
+	it("posts to /auth/login by default", async () => {
+		post.mockResolvedValue({
+			data: { token: "jwt-token" },
+		});
+
+		await authApiService.login("someone@example.com", "password123");
+
+		expect(post).toHaveBeenCalledWith("/auth/login", {
+			email: "someone@example.com",
+			password: "password123",
+		});
+	});
+
+	it("posts to the configured login path", async () => {
+		process.env.AUTH_LOGIN_PATH = "/v2/auth/login";
+		post.mockResolvedValue({
+			data: { token: "jwt-token" },
+		});
+
+		await authApiService.login("someone@example.com", "password123");
+
+		expect(post).toHaveBeenCalledWith("/v2/auth/login", {
+			email: "someone@example.com",
+			password: "password123",
+		});
+	});
+
+	it("returns the backend token", async () => {
+		post.mockResolvedValue({
+			data: { token: "jwt-token" },
+		});
+
 		const result = await authApiService.login(
 			"someone@example.com",
 			"password123",
 		);
 
-		expect(result.token).toContain("mock-jwt-token-for-someone@example.com");
+		expect(result).toEqual({ token: "jwt-token" });
 	});
 
-	it("throws 401 when email is empty", async () => {
-		await expect(authApiService.login("", "password123")).rejects.toMatchObject(
-			{
-				message: "Invalid credentials",
-				statusCode: 401,
-			},
+	it("throws 401 for backend 401 responses", async () => {
+		post.mockRejectedValue(
+			axiosErrorWithStatus(401, { message: "Invalid credentials" }),
 		);
-	});
 
-	it("throws 401 when password is empty", async () => {
 		await expect(
-			authApiService.login("someone@example.com", ""),
+			authApiService.login("someone@example.com", "bad-password"),
 		).rejects.toMatchObject({
 			message: "Invalid credentials",
 			statusCode: 401,
 		});
 	});
+
+	it("throws 500 when login response has no token", async () => {
+		post.mockResolvedValue({ data: {} });
+
+		await expect(
+			authApiService.login("someone@example.com", "password123"),
+		).rejects.toThrow("Login response did not include a token");
+	});
+
+	it("throws generic message for unexpected axios status", async () => {
+		post.mockRejectedValue(axiosErrorWithStatus(503));
+
+		await expect(
+			authApiService.login("someone@example.com", "password123"),
+		).rejects.toThrow("Unexpected error while logging in");
+	});
 });
 
 describe("AuthApiServiceImpl.logout", () => {
-	let authApiService: AuthApiServiceImpl;
+	const originalLogoutPath = process.env.AUTH_LOGOUT_PATH;
+	let authApiService: AuthApiService;
 
 	beforeEach(() => {
+		post.mockReset();
+		delete process.env.AUTH_LOGOUT_PATH;
 		authApiService = new AuthApiServiceImpl();
 	});
 
-	it("resolves without throwing", async () => {
+	afterEach(() => {
+		if (originalLogoutPath === undefined) {
+			delete process.env.AUTH_LOGOUT_PATH;
+			return;
+		}
+
+		process.env.AUTH_LOGOUT_PATH = originalLogoutPath;
+	});
+
+	it("posts to /auth/logout by default", async () => {
+		post.mockResolvedValue({ data: {} });
+
+		await expect(authApiService.logout()).resolves.toBeUndefined();
+		expect(post).toHaveBeenCalledWith("/auth/logout");
+	});
+
+	it("posts to the configured logout path", async () => {
+		process.env.AUTH_LOGOUT_PATH = "/v2/auth/logout";
+		post.mockResolvedValue({ data: {} });
+
+		await expect(authApiService.logout()).resolves.toBeUndefined();
+		expect(post).toHaveBeenCalledWith("/v2/auth/logout");
+	});
+
+	it("resolves when logout endpoint is unavailable", async () => {
+		post.mockRejectedValue(axiosErrorWithStatus(503));
+
 		await expect(authApiService.logout()).resolves.toBeUndefined();
 	});
 });
