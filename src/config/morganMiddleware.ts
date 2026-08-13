@@ -6,7 +6,11 @@ const stream: StreamOptions = {
 	write: (message) => Logger.http(message.trimEnd()),
 };
 
-/** Only logs requests in development. */
+/**
+ * Determines whether Morgan request logging should be skipped.
+ *
+ * @returns `true` outside development to reduce noise in non-dev environments.
+ */
 const skip = () => {
 	return (process.env.NODE_ENV || "development") !== "development";
 };

@@ -8,9 +8,14 @@ type ApiError = {
 	token?: string;
 };
 
+/** Represents normalized auth failures surfaced to the HTTP layer. */
 export class AuthApiError extends Error {
 	statusCode: number;
 
+	/**
+	 * @param message - User-safe error message for auth failures.
+	 * @param statusCode - HTTP status code to propagate to the controller.
+	 */
 	constructor(message: string, statusCode: number) {
 		super(message);
 		this.name = "AuthApiError";
@@ -26,9 +31,17 @@ export interface AuthApiService {
 
 /** Service class for handling authentication API calls. */
 export class AuthApiServiceImpl implements AuthApiService {
-	/** Calls the backend login endpoint and returns a JWT payload. */
+	/**
+	 * Calls the backend login endpoint and returns a JWT payload.
+	 *
+	 * @param email - User email submitted from the login form.
+	 * @param password - User password submitted from the login form.
+	 * @returns JWT payload from the backend login response.
+	 * @throws {AuthApiError} When backend responds with auth failure or unexpected status.
+	 */
 	async login(email: string, password: string): Promise<{ token: string }> {
 		const loginPath = process.env.AUTH_LOGIN_PATH ?? "/auth/login";
+		Logger.debug(`Calling login API path ${loginPath} for ${email.trim()}`);
 
 		try {
 			const response = await apiClient.post<{ token: string }>(loginPath, {
@@ -37,14 +50,20 @@ export class AuthApiServiceImpl implements AuthApiService {
 			});
 
 			if (!response.data?.token) {
+				Logger.error("Login API returned success without a token payload");
 				throw new AuthApiError("Login response did not include a token", 500);
 			}
+
+			Logger.info(`Login API call succeeded for ${email.trim()}`);
 
 			return response.data;
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				const status = error.response?.status;
 				const message = (error.response?.data as ApiError | undefined)?.message;
+				Logger.warn(
+					`Login API call failed for ${email.trim()} with status ${status ?? "none"}`,
+				);
 
 				if (status === 400 || status === 401) {
 					throw new AuthApiError(message ?? "Invalid credentials", 401);
@@ -57,12 +76,19 @@ export class AuthApiServiceImpl implements AuthApiService {
 		}
 	}
 
-	/** Calls the backend logout endpoint. */
+	/**
+	 * Calls the backend logout endpoint.
+	 *
+	 * @returns Resolves when logout has completed or when backend logout is unreachable.
+	 * @throws {Error} Re-throws non-Axios failures.
+	 */
 	async logout(): Promise<void> {
 		const logoutPath = process.env.AUTH_LOGOUT_PATH ?? "/auth/logout";
+		Logger.debug(`Calling logout API path ${logoutPath}`);
 
 		try {
 			await apiClient.post(logoutPath);
+			Logger.info("Logout API call succeeded");
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				Logger.warn(
@@ -75,12 +101,20 @@ export class AuthApiServiceImpl implements AuthApiService {
 		}
 	}
 
-	/** Calls the backend register endpoint and returns the created user payload. */
+	/**
+	 * Calls the backend register endpoint and returns the created user payload.
+	 *
+	 * @param email - User email submitted from the registration form.
+	 * @param password - User password submitted from the registration form.
+	 * @returns Created user payload from the backend API.
+	 * @throws {AuthApiError} When the API responds with mapped 400/409/500 scenarios.
+	 */
 	async register(
 		email: string,
 		password: string,
 	): Promise<RegisterResponseDto> {
 		const registerPath = process.env.AUTH_REGISTER_PATH ?? "/auth/register";
+		Logger.debug(`Calling register API path ${registerPath} for ${email}`);
 
 		try {
 			const response = await apiClient.post<RegisterResponseDto>(registerPath, {
@@ -88,11 +122,16 @@ export class AuthApiServiceImpl implements AuthApiService {
 				password,
 			});
 
+			Logger.info(`Register API call succeeded for ${email}`);
+
 			return response.data;
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
 				const status = error.response?.status;
 				const message = (error.response?.data as ApiError | undefined)?.message;
+				Logger.warn(
+					`Register API call failed for ${email} with status ${status ?? "none"}`,
+				);
 
 				if (status === 400) {
 					throw new AuthApiError(

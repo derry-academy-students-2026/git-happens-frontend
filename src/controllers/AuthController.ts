@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { LoginSchema, RegisterSchema } from "../dtos/authDto.js";
+import Logger from "../lib/logger.js";
 import type { AuthApiService } from "../services/authApiService.js";
 
 type ErrorWithStatusCode = Error & {
@@ -16,6 +17,7 @@ export class AuthController {
 				? req.query.returnTo
 				: "/jobs/job-roles";
 		const registrationSuccess = req.query.registered === "1";
+		Logger.debug("Rendering login page");
 		res.render("pages/login.njk", {
 			error: null,
 			success: registrationSuccess
@@ -38,6 +40,7 @@ export class AuthController {
 		const loginValidation = LoginSchema.safeParse({ email: email.trim() });
 
 		if (!loginValidation.success) {
+			Logger.warn(`Rejected login with invalid email format: ${email.trim()}`);
 			res.status(400).render("pages/login.njk", {
 				error:
 					loginValidation.error.issues[0]?.message ??
@@ -49,6 +52,7 @@ export class AuthController {
 		}
 
 		try {
+			Logger.info(`Attempting login for ${email.trim()}`);
 			const { token } = await this.authApiService.login(email, password);
 			res.cookie("jwt", token, {
 				httpOnly: true,
@@ -56,10 +60,14 @@ export class AuthController {
 				secure: process.env.NODE_ENV === "production",
 				path: "/",
 			});
+			Logger.info(`Login successful for ${email.trim()}`);
 			res.redirect(returnTo);
 		} catch (error) {
 			const typedError = error as ErrorWithStatusCode;
 			const statusCode = typedError.statusCode ?? 500;
+			Logger.error(
+				`Login failed for ${email.trim()} with status ${statusCode}: ${typedError.message}`,
+			);
 			const errorMessage =
 				statusCode === 401
 					? "Please enter your email and password."
@@ -74,6 +82,7 @@ export class AuthController {
 
 	/** Clears the JWT session cookie and returns the user to the jobs landing page. */
 	async logout(_req: Request, res: Response): Promise<void> {
+		Logger.info("Processing logout request");
 		await this.authApiService.logout();
 		res.clearCookie("jwt", {
 			path: "/",
@@ -81,11 +90,13 @@ export class AuthController {
 			sameSite: "lax",
 			secure: process.env.NODE_ENV === "production",
 		});
+		Logger.info("Logout completed and jwt cookie cleared");
 		res.redirect("/jobs");
 	}
 
 	/** Displays the registration page. */
 	showRegister(_req: Request, res: Response): void {
+		Logger.debug("Rendering registration page");
 		res.render("pages/register.njk", {
 			formValues: { email: "" },
 		});
@@ -104,6 +115,9 @@ export class AuthController {
 		});
 
 		if (!validation.success) {
+			Logger.warn(
+				`Rejected registration due to validation failure for ${email}`,
+			);
 			const firstError = validation.error.issues[0];
 			const fieldName = String(firstError?.path[0] ?? "email");
 			const errorMessage = firstError?.message ?? "Invalid input";
@@ -117,11 +131,16 @@ export class AuthController {
 		}
 
 		try {
+			Logger.info(`Attempting registration for ${email}`);
 			await this.authApiService.register(email, password);
+			Logger.info(`Registration successful for ${email}`);
 			res.redirect("/auth/login?registered=1");
 		} catch (error) {
 			const typedError = error as ErrorWithStatusCode;
 			const statusCode = typedError.statusCode ?? 500;
+			Logger.error(
+				`Registration failed for ${email} with status ${statusCode}: ${typedError.message}`,
+			);
 			const errorMessage =
 				statusCode === 409
 					? "An account with this email already exists."
