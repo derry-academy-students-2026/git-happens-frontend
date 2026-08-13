@@ -11,5 +11,12 @@ export interface JobRoleDTO {
 		bandName: string;
 	};
 	closingDate: string;
-	status: "Open" | "Closed";
+	status: {
+		statusId: number;
+		statusName: string;
+	};
+	description: string;
+	responsibilities: string;
+	sharepointUrl: string;
+	numberOfOpenPositions: number;
 }

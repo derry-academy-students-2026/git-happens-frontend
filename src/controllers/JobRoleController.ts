@@ -33,4 +33,44 @@ export class JobRoleController {
 				.render("pages/error.njk", { error: "Internal Server Error" });
 		}
 	}
+
+	/**
+	 * Renders the information page for a single job role.
+	 *
+	 * @param req - The `GET /jobs/job-roles/:id` request, whose `id` param selects the role.
+	 * @param res - Renders `pages/job-role-information.njk` with a `jobRole`, or
+	 * `pages/error.njk` with a 400, 404 or 500 on failure.
+	 * @returns Resolves once a response has been rendered.
+	 * @remarks Never rejects. Invalid ids and service failures are rendered as error pages.
+	 */
+	async getById(req: Request, res: Response): Promise<void> {
+		const id = Number(req.params.id);
+		if (!Number.isInteger(id) || id < 1) {
+			Logger.warn(
+				`Rejected job role request with invalid id: ${req.params.id}`,
+			);
+			res
+				.status(400)
+				.render("pages/error.njk", { error: "That job role id is not valid" });
+			return;
+		}
+
+		try {
+			const jobRole = await this.service.getJobRoleById(id);
+			Logger.debug(`Rendering job role information for id ${id}`);
+			res.render("pages/job-role-information.njk", { jobRole });
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			Logger.error(`Failed to render job role ${id}: ${message}`);
+			if (message === "Job role not found") {
+				res
+					.status(404)
+					.render("pages/error.njk", { error: "Job role not found" });
+				return;
+			}
+			res
+				.status(500)
+				.render("pages/error.njk", { error: "Internal Server Error" });
+		}
+	}
 }

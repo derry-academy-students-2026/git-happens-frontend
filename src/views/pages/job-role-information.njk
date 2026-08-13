@@ -1,0 +1,71 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}{{ jobRole.roleName }}{% endblock %}
+
+{% block masthead %}
+	<section class="masthead masthead--compact">
+		<div class="shell">
+			<span class="section-label">Job role</span>
+			<h1 class="display display--page">{{ jobRole.roleName }}</h1>
+			<p class="lede">
+				{{ jobRole.capability.capabilityName }} in {{ jobRole.location }}.
+			</p>
+		</div>
+	</section>
+{% endblock %}
+
+{% block content %}
+	<article class="job-detail">
+		<div class="job-detail__heading">
+			<h2 class="display display--section">Role details</h2>
+			<span class="job-status job-status--{{ jobRole.status.statusName | lower }}">
+				{{ jobRole.status.statusName }}
+			</span>
+		</div>
+
+		<dl class="job-meta">
+			<div>
+				<dt>Location</dt>
+				<dd>{{ jobRole.location }}</dd>
+			</div>
+			<div>
+				<dt>Capability</dt>
+				<dd>{{ jobRole.capability.capabilityName }}</dd>
+			</div>
+			<div>
+				<dt>Band</dt>
+				<dd>{{ jobRole.band.bandName }}</dd>
+			</div>
+			<div>
+				<dt>Closing date</dt>
+				<dd>{{ jobRole.closingDate | truncate(10, true, "") }}</dd>
+			</div>
+			<div>
+				<dt>Open positions</dt>
+				<dd>{{ jobRole.numberOfOpenPositions }}</dd>
+			</div>
+		</dl>
+
+		<div class="job-detail__section">
+			<h3>Description</h3>
+			<p>{{ jobRole.description }}</p>
+		</div>
+
+		<div class="job-detail__section">
+			<h3>Responsibilities</h3>
+			<p>{{ jobRole.responsibilities }}</p>
+		</div>
+	</article>
+
+	<div class="job-detail__actions">
+		<a
+			class="button button--solid"
+			href="{{ jobRole.sharepointUrl }}"
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			View job spec
+		</a>
+		<a class="button button--ink" href="/jobs/job-roles">Back to all roles</a>
+	</div>
+{% endblock %}
