@@ -19,7 +19,11 @@ const apiResponse = [
 		capability: { capabilityId: 9, capabilityName: "Administration" },
 		band: { bandId: 8, bandName: "Band 2 - Mid-Level" },
 		closingDate: "2024-09-30T00:00:00.000Z",
-		status: "Open",
+		status: { statusId: 1, statusName: "Open" },
+		description: "Support senior leaders with scheduling and correspondence.",
+		responsibilities: "Manage diaries. Coordinate travel. Prepare reports.",
+		sharepointUrl: "https://kainos.sharepoint.com/job-specs/1",
+		numberOfOpenPositions: 1,
 	},
 	{
 		jobRoleId: 2,
@@ -28,7 +32,11 @@ const apiResponse = [
 		capability: { capabilityId: 6, capabilityName: "Software Engineering" },
 		band: { bandId: 10, bandName: "Band 3 - Senior" },
 		closingDate: "2024-10-15T00:00:00.000Z",
-		status: "Closed",
+		status: { statusId: 2, statusName: "Closed" },
+		description: "Design and build backend services at scale.",
+		responsibilities: "Design APIs. Write tests. Mentor juniors.",
+		sharepointUrl: "https://kainos.sharepoint.com/job-specs/2",
+		numberOfOpenPositions: 3,
 	},
 ];
 
