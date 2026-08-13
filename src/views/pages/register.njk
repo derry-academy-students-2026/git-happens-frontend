@@ -1,0 +1,152 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+  <div class="auth-container">
+    <h1 class="display display--page">Create an Account</h1>
+
+    {% if successMessage %}
+      <div class="success-message" role="status">
+        <strong>Success:</strong> {{ successMessage }}
+        {% if registeredUser %}
+          <p>
+            Registered {{ registeredUser.email }} as {{ registeredUser.role }} on
+            {{ registeredUser.createdAt }}.
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+    
+    {% if errorMessage %}
+      <div class="error-message" role="alert">
+        <strong>Error:</strong> {{ errorMessage }}
+      </div>
+    {% endif %}
+
+    <form method="post" action="/auth/register" novalidate>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value="{{ formValues.email }}"
+          required
+          autocomplete="email"
+          aria-describedby="email-hint"
+        />
+        <small id="email-hint">We'll use this to sign you in</small>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          autocomplete="new-password"
+          aria-describedby="password-hint"
+        />
+        <small id="password-hint">
+          Must be more than 8 characters with uppercase, lowercase, and special
+          character
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          required
+          autocomplete="new-password"
+          aria-describedby="confirm-password-hint"
+        />
+        <small id="confirm-password-hint">Must match your password</small>
+      </div>
+
+      <button type="submit" class="button button--solid">Create Account</button>
+    </form>
+
+    <p class="auth-footer">Use your new account to continue in the backend system.</p>
+  </div>
+
+  <style>
+    .auth-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #283583;
+      box-shadow: 0 0 0 3px rgba(40, 53, 131, 0.1);
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 0.25rem;
+      color: #666;
+      font-size: 0.875rem;
+    }
+
+    .error-message {
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      background-color: #fef2f2;
+      border-left: 4px solid #dc2626;
+      color: #7f1d1d;
+    }
+
+    .success-message {
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      background-color: #ecfdf3;
+      border-left: 4px solid #16a34a;
+      color: #14532d;
+    }
+
+    .success-message p {
+      margin: 0.5rem 0 0;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 2rem;
+      color: #666;
+    }
+
+    .auth-footer a {
+      color: #283583;
+      text-decoration: none;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+{% endblock %}

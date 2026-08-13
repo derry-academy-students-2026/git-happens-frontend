@@ -38,3 +38,7 @@ Thumbs.db
 
 code_reviews/
 kainos-brand-enforcer/
+.agent/skills/
+.claude/skills/
+.windsurf/skills/
+skills-lock.json
