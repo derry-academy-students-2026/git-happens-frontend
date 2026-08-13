@@ -85,7 +85,10 @@ describe("AuthApiServiceImpl.register", () => {
 			},
 		});
 
-		const result = await authApiService.register("user@example.com", "GoodPass!9");
+		const result = await authApiService.register(
+			"user@example.com",
+			"GoodPass!9",
+		);
 
 		expect(result).toEqual({
 			email: "user@example.com",
@@ -132,5 +135,52 @@ describe("AuthApiServiceImpl.register", () => {
 		await expect(
 			authApiService.register("user@example.com", "GoodPass!9"),
 		).rejects.toThrow("network disconnected");
+	});
+});
+
+describe("AuthApiServiceImpl.login", () => {
+	let authApiService: AuthApiServiceImpl;
+
+	beforeEach(() => {
+		authApiService = new AuthApiServiceImpl();
+	});
+
+	it("returns a mock token for non-empty credentials", async () => {
+		const result = await authApiService.login(
+			"someone@example.com",
+			"password123",
+		);
+
+		expect(result.token).toContain("mock-jwt-token-for-someone@example.com");
+	});
+
+	it("throws 401 when email is empty", async () => {
+		await expect(authApiService.login("", "password123")).rejects.toMatchObject(
+			{
+				message: "Invalid credentials",
+				statusCode: 401,
+			},
+		);
+	});
+
+	it("throws 401 when password is empty", async () => {
+		await expect(
+			authApiService.login("someone@example.com", ""),
+		).rejects.toMatchObject({
+			message: "Invalid credentials",
+			statusCode: 401,
+		});
+	});
+});
+
+describe("AuthApiServiceImpl.logout", () => {
+	let authApiService: AuthApiServiceImpl;
+
+	beforeEach(() => {
+		authApiService = new AuthApiServiceImpl();
+	});
+
+	it("resolves without throwing", async () => {
+		await expect(authApiService.logout()).resolves.toBeUndefined();
 	});
 });

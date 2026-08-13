@@ -2,10 +2,13 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockRegister = vi.fn();
+const mockLogin = vi.fn();
 
 vi.mock("../../src/services/authApiService.js", () => ({
 	AuthApiServiceImpl: class {
 		register = mockRegister;
+		login = mockLogin;
+		logout = vi.fn();
 	},
 }));
 
@@ -14,13 +17,34 @@ const { default: app } = await import("../../src/app.js");
 describe("authRouter", () => {
 	beforeEach(() => {
 		mockRegister.mockReset();
+		mockLogin.mockReset();
+		mockLogin.mockResolvedValue({
+			token: "mock-jwt-token-for-user@example.com",
+		});
 	});
 
 	it("renders the registration page", async () => {
 		const response = await request(app).get("/auth/register");
 
 		expect(response.status).toBe(200);
-		expect(response.text).toContain("Create an Account");
+		expect(response.text).toContain("Create your account");
+		expect(response.text).toContain('href="/jobs/login"');
+	});
+
+	it("renders the login page with a create account link", async () => {
+		const response = await request(app).get("/jobs/login");
+
+		expect(response.status).toBe(200);
+		expect(response.text).toContain("Login");
+		expect(response.text).toContain('href="/auth/register"');
+		expect(response.text).toContain("Create an account");
+	});
+
+	it("shows registration success message on login page when redirected", async () => {
+		const response = await request(app).get("/jobs/login?registered=1");
+
+		expect(response.status).toBe(200);
+		expect(response.text).toContain("Registration successful. Please log in.");
 	});
 
 	it("returns validation errors for invalid email", async () => {
@@ -55,7 +79,7 @@ describe("authRouter", () => {
 		expect(mockRegister).not.toHaveBeenCalled();
 	});
 
-	it("renders success details after a successful registration", async () => {
+	it("redirects to login after a successful registration", async () => {
 		mockRegister.mockResolvedValue({
 			email: "user@example.com",
 			role: "user",
@@ -71,10 +95,9 @@ describe("authRouter", () => {
 				confirmPassword: "GoodPass!9",
 			});
 
-		expect(response.status).toBe(201);
-		expect(response.text).toContain("Registration successful");
-		expect(response.text).toContain("user@example.com");
-		expect(response.text).toContain("user");
+		expect(response.status).toBe(302);
+		expect(response.headers.location).toBe("/jobs/login?registered=1");
+		expect(response.headers["set-cookie"]).toBeUndefined();
 	});
 
 	it("shows backend duplicate email errors", async () => {
@@ -97,7 +120,7 @@ describe("authRouter", () => {
 
 		expect(response.status).toBe(409);
 		expect(response.text).toContain(
-			"An account with this email already exists",
+			"An account with this email already exists.",
 		);
 	});
 
@@ -120,7 +143,9 @@ describe("authRouter", () => {
 			});
 
 		expect(response.status).toBe(500);
-		expect(response.text).toContain("Unexpected error while registering");
+		expect(response.text).toContain(
+			"We couldn&#39;t create your account right now. Please try again.",
+		);
 	});
 
 	it("returns validation error when password confirmation does not match", async () => {

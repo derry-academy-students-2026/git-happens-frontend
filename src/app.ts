@@ -15,6 +15,7 @@ const app = express();
 nunjucks.configure(path.join(currentDir, "views"), {
 	autoescape: true,
 	express: app,
+	noCache: process.env.NODE_ENV !== "production",
 });
 
 app.use(
@@ -24,6 +25,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(morganMiddleware);
 
@@ -34,6 +36,11 @@ app.use((req, res, next) => {
 			? req.path.slice(0, -1)
 			: req.path;
 	res.locals.currentPath = normalizedPath;
+	const cookieHeader = req.headers.cookie ?? "";
+	res.locals.isAuthenticated = cookieHeader
+		.split(";")
+		.map((item) => item.trim())
+		.some((item) => item.startsWith("jwt="));
 	next();
 });
 
@@ -53,7 +60,7 @@ Logger.info("This is an info message");
 Logger.http("This is an http message");
 Logger.debug("This is a debug message");
 
-app.use(express.urlencoded({ extended: true }));
+app.use("/jobs", authRouter);
 
 app.use("/jobs", jobRouter);
 app.use("/auth", authRouter);

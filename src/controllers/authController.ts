@@ -9,6 +9,69 @@ type ErrorWithStatusCode = Error & {
 export class AuthController {
 	constructor(private authApiService: AuthApiService) {}
 
+	/** Displays the login page. */
+	showLogin(req: Request, res: Response): void {
+		const returnTo =
+			typeof req.query.returnTo === "string"
+				? req.query.returnTo
+				: "/jobs/job-roles";
+		const registrationSuccess = req.query.registered === "1";
+		res.render("pages/login.njk", {
+			error: null,
+			success: registrationSuccess
+				? "Registration successful. Please log in."
+				: null,
+			email: "",
+			returnTo,
+		});
+	}
+
+	/** Handles mocked login submission and stores JWT in the browser session cookie. */
+	async login(req: Request, res: Response): Promise<void> {
+		const email = typeof req.body.email === "string" ? req.body.email : "";
+		const password =
+			typeof req.body.password === "string" ? req.body.password : "";
+		const returnTo =
+			typeof req.body.returnTo === "string" && req.body.returnTo
+				? req.body.returnTo
+				: "/jobs/job-roles";
+
+		try {
+			const { token } = await this.authApiService.login(email, password);
+			res.cookie("jwt", token, {
+				httpOnly: true,
+				sameSite: "lax",
+				secure: process.env.NODE_ENV === "production",
+				path: "/",
+			});
+			res.redirect(returnTo);
+		} catch (error) {
+			const typedError = error as ErrorWithStatusCode;
+			const statusCode = typedError.statusCode ?? 500;
+			const errorMessage =
+				statusCode === 401
+					? "Please enter your email and password."
+					: "We couldn't log you in right now. Please try again.";
+			res.status(statusCode).render("pages/login.njk", {
+				error: errorMessage,
+				email,
+				returnTo,
+			});
+		}
+	}
+
+	/** Clears the JWT session cookie and returns the user to the jobs landing page. */
+	async logout(_req: Request, res: Response): Promise<void> {
+		await this.authApiService.logout();
+		res.clearCookie("jwt", {
+			path: "/",
+			httpOnly: true,
+			sameSite: "lax",
+			secure: process.env.NODE_ENV === "production",
+		});
+		res.redirect("/jobs");
+	}
+
 	/** Displays the registration page. */
 	showRegister(_req: Request, res: Response): void {
 		res.render("pages/register.njk", {
@@ -22,7 +85,6 @@ export class AuthController {
 		const password = String(req.body.password ?? "").trim();
 		const confirmPassword = String(req.body.confirmPassword ?? "").trim();
 
-		/** Validate input against schema before calling backend. */
 		const validation = RegisterSchema.safeParse({
 			email,
 			password,
@@ -43,19 +105,20 @@ export class AuthController {
 		}
 
 		try {
-			const registeredUser = await this.authApiService.register(email, password);
-			res.status(201).render("pages/register.njk", {
-				successMessage: "Registration successful",
-				registeredUser,
-				formValues: { email: "" },
-			});
+			await this.authApiService.register(email, password);
+			res.redirect("/jobs/login?registered=1");
 		} catch (error) {
 			const typedError = error as ErrorWithStatusCode;
-			const message = typedError.message || "Unable to register";
 			const statusCode = typedError.statusCode ?? 500;
+			const errorMessage =
+				statusCode === 409
+					? "An account with this email already exists."
+					: statusCode === 400
+						? "Please check your details and try again."
+						: "We couldn't create your account right now. Please try again.";
 
 			res.status(statusCode).render("pages/register.njk", {
-				errorMessage: message,
+				errorMessage,
 				formValues: { email },
 			});
 		}

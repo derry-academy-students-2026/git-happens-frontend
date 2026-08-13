@@ -48,7 +48,9 @@ describe("job role list page", () => {
 	it("flattens the nested capability and band onto the page", async () => {
 		get.mockResolvedValue({ data: apiResponse });
 
-		const response = await request(app).get("/jobs/job-roles");
+		const response = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Administration");
@@ -60,7 +62,9 @@ describe("job role list page", () => {
 	it("renders the closing date without the ISO time portion", async () => {
 		get.mockResolvedValue({ data: apiResponse });
 
-		const response = await request(app).get("/jobs/job-roles");
+		const response = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.text).toContain("2024-09-30");
 		expect(response.text).not.toContain("T00:00:00.000Z");
@@ -69,7 +73,9 @@ describe("job role list page", () => {
 	it("badges each role using the status casing the API sends", async () => {
 		get.mockResolvedValue({ data: apiResponse });
 
-		const response = await request(app).get("/jobs/job-roles");
+		const response = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.text).toContain("job-status--open");
 		expect(response.text).toContain("job-status--closed");
@@ -79,7 +85,9 @@ describe("job role list page", () => {
 	it("lists every role the API returns, open or closed", async () => {
 		get.mockResolvedValue({ data: apiResponse });
 
-		const response = await request(app).get("/jobs/job-roles");
+		const response = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.text).toContain("Executive Assistant");
 		expect(response.text).toContain("Senior Software Engineer");
@@ -89,7 +97,9 @@ describe("job role list page", () => {
 	it("renders the empty state when the API returns no roles", async () => {
 		get.mockResolvedValue({ data: [] });
 
-		const response = await request(app).get("/jobs/job-roles");
+		const response = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain(
@@ -100,9 +110,18 @@ describe("job role list page", () => {
 	it("renders the error page when the API call fails", async () => {
 		get.mockRejectedValue(new Error("connect ECONNREFUSED"));
 
-		const response = await request(app).get("/jobs/job-roles");
+		const response = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.status).toBe(500);
 		expect(response.text).toContain("Something went wrong");
+	});
+
+	it("redirects to login when no jwt cookie is present", async () => {
+		const response = await request(app).get("/jobs/job-roles");
+
+		expect(response.status).toBe(302);
+		expect(response.headers.location).toContain("/jobs/login");
 	});
 });

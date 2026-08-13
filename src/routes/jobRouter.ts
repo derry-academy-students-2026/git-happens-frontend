@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { JobRoleController } from "../controllers/JobRoleController.js";
+import { requireJwt } from "../middleware/requireJwt.js";
 import { JobRoleService } from "../services/JobRoleService.js";
 
 const jobRouter = Router();
@@ -12,9 +13,13 @@ jobRouter.get("/", (_req, res) => {
 });
 
 /** Renders every job role returned by the API. */
-jobRouter.get("/job-roles", (req, res) => controller.getAll(req, res));
+jobRouter.get("/job-roles", requireJwt, (req, res) =>
+	controller.getAll(req, res),
+);
 
 /** Renders the information page for a single job role. */
-jobRouter.get("/job-roles/:id", (req, res) => controller.getById(req, res));
+jobRouter.get("/job-roles/:id", requireJwt, (req, res) =>
+	controller.getById(req, res),
+);
 
 export default jobRouter;
