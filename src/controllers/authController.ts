@@ -106,7 +106,7 @@ export class AuthController {
 
 		try {
 			await this.authApiService.register(email, password);
-			res.redirect("/jobs/login?registered=1");
+			res.redirect("/auth/login?registered=1");
 		} catch (error) {
 			const typedError = error as ErrorWithStatusCode;
 			const statusCode = typedError.statusCode ?? 500;

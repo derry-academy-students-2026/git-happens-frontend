@@ -122,6 +122,6 @@ describe("job role list page", () => {
 		const response = await request(app).get("/jobs/job-roles");
 
 		expect(response.status).toBe(302);
-		expect(response.headers.location).toContain("/jobs/login");
+		expect(response.headers.location).toContain("/auth/login");
 	});
 });

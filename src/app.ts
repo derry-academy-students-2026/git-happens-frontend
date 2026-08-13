@@ -60,8 +60,6 @@ Logger.info("This is an info message");
 Logger.http("This is an http message");
 Logger.debug("This is a debug message");
 
-app.use("/jobs", authRouter);
-
 app.use("/jobs", jobRouter);
 app.use("/auth", authRouter);
 

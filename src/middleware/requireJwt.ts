@@ -10,7 +10,7 @@ export function requireJwt(req: Request, res: Response, next: NextFunction) {
 
 	if (!hasJwt) {
 		const returnTo = encodeURIComponent(req.originalUrl || "/jobs/job-roles");
-		res.redirect(`/jobs/login?returnTo=${returnTo}`);
+		res.redirect(`/auth/login?returnTo=${returnTo}`);
 		return;
 	}
 

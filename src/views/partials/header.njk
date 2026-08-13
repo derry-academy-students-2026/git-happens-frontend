@@ -15,11 +15,11 @@
 			<a href="/jobs" {% if currentPath == "/jobs" %}aria-current="page"{% endif %}>Home</a>
 			<a href="/jobs/job-roles" {% if currentPath == "/jobs/job-roles" %}aria-current="page"{% endif %}>Job roles</a>
 			{% if isAuthenticated %}
-				<form action="/jobs/logout" method="post" class="site-nav__logout-form">
+				<form action="/auth/logout" method="post" class="site-nav__logout-form">
 					<button type="submit" class="site-nav__logout">Log out</button>
 				</form>
 			{% else %}
-				<a href="/jobs/login" {% if currentPath == "/jobs/login" %}aria-current="page"{% endif %}>Login</a>
+				<a href="/auth/login" {% if currentPath == "/auth/login" %}aria-current="page"{% endif %}>Login</a>
 			{% endif %}
 		</nav>
 	</div>

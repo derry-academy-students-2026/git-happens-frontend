@@ -28,11 +28,11 @@ describe("authRouter", () => {
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Create your account");
-		expect(response.text).toContain('href="/jobs/login"');
+		expect(response.text).toContain('href="/auth/login"');
 	});
 
 	it("renders the login page with a create account link", async () => {
-		const response = await request(app).get("/jobs/login");
+		const response = await request(app).get("/auth/login");
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Login");
@@ -41,7 +41,7 @@ describe("authRouter", () => {
 	});
 
 	it("shows registration success message on login page when redirected", async () => {
-		const response = await request(app).get("/jobs/login?registered=1");
+		const response = await request(app).get("/auth/login?registered=1");
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Registration successful. Please log in.");
@@ -96,7 +96,7 @@ describe("authRouter", () => {
 			});
 
 		expect(response.status).toBe(302);
-		expect(response.headers.location).toBe("/jobs/login?registered=1");
+		expect(response.headers.location).toBe("/auth/login?registered=1");
 		expect(response.headers["set-cookie"]).toBeUndefined();
 	});
 

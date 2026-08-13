@@ -55,7 +55,7 @@ describe("jobRouter", () => {
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Browse open roles");
-		expect(response.text).toContain('href="/jobs/login"');
+		expect(response.text).toContain('href="/auth/login"');
 		expect(response.text).not.toContain("Log out");
 	});
 
@@ -187,13 +187,13 @@ describe("jobRouter", () => {
 		const response = await request(app).get("/jobs/job-roles");
 
 		expect(response.status).toBe(302);
-		expect(response.headers.location).toContain("/jobs/login");
+		expect(response.headers.location).toContain("/auth/login");
 		expect(response.headers.location).toContain("returnTo=%2Fjobs%2Fjob-roles");
 		expect(getAllJobRoles).not.toHaveBeenCalled();
 	});
 
 	it("renders the login page", async () => {
-		const response = await request(app).get("/jobs/login");
+		const response = await request(app).get("/auth/login");
 
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Login");
@@ -202,7 +202,7 @@ describe("jobRouter", () => {
 	});
 
 	it("logs in and sets a jwt cookie", async () => {
-		const response = await request(app).post("/jobs/login").type("form").send({
+		const response = await request(app).post("/auth/login").type("form").send({
 			email: "test@example.com",
 			password: "password123",
 			returnTo: "/jobs/job-roles",
@@ -214,7 +214,7 @@ describe("jobRouter", () => {
 	});
 
 	it("shows an error when login credentials are missing", async () => {
-		const response = await request(app).post("/jobs/login").type("form").send({
+		const response = await request(app).post("/auth/login").type("form").send({
 			email: "",
 			password: "",
 		});
@@ -225,7 +225,7 @@ describe("jobRouter", () => {
 
 	it("logs out by clearing the jwt cookie and redirecting to jobs", async () => {
 		const response = await request(app)
-			.post("/jobs/logout")
+			.post("/auth/logout")
 			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.status).toBe(302);
