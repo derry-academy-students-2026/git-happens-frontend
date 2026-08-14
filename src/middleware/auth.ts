@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import Logger from "../lib/logger.js";
 
-export type AuthRole = "applicant" | "admin";
+export type AuthRole = "user" | "admin";
 
 export type AuthenticatedUser = {
 	token: string;
@@ -55,12 +55,12 @@ export function sanitizeReturnTo(returnTo: unknown): string {
  * Decodes the JWT payload role without logging or trusting sensitive token contents.
  *
  * @param token - JWT token from the session cookie.
- * @returns Authenticated user details, defaulting unknown roles to applicant.
+ * @returns Authenticated user details, defaulting unknown roles to user.
  */
 export function decodeAuthenticatedUser(token: string): AuthenticatedUser {
 	const [, payload] = token.split(".");
 	if (!payload) {
-		return { token, role: "applicant" };
+		return { token, role: "user" };
 	}
 
 	try {
@@ -68,11 +68,11 @@ export function decodeAuthenticatedUser(token: string): AuthenticatedUser {
 		const parsedPayload = JSON.parse(decoded) as JwtPayload;
 		return {
 			token,
-			role: parsedPayload.role === "admin" ? "admin" : "applicant",
+			role: parsedPayload.role === "admin" ? "admin" : "user",
 		};
 	} catch {
-		Logger.warn("JWT payload could not be decoded; defaulting role to applicant");
-		return { token, role: "applicant" };
+		Logger.warn("JWT payload could not be decoded; defaulting role to user");
+		return { token, role: "user" };
 	}
 }
 
@@ -107,7 +107,7 @@ export function requireJwt(req: Request, res: Response, next: NextFunction) {
  * Allows only recruitment admins through to protected management routes.
  *
  * @param req - Authenticated request with decoded user details.
- * @param res - Response used to render forbidden errors for applicants.
+ * @param res - Response used to render forbidden errors for users without admin role.
  * @param next - Continues to the next middleware when the user is an admin.
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
@@ -116,6 +116,6 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 		return;
 	}
 
-	Logger.warn(`Applicant attempted to access admin route ${req.originalUrl}`);
+	Logger.warn(`User attempted to access admin route ${req.originalUrl}`);
 	res.status(403).render("pages/error.njk", { error: "Forbidden" });
 }

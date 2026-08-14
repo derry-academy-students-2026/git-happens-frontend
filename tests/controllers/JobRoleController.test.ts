@@ -36,7 +36,7 @@ function createService(getAllJobRoles: JobRoleService["getAllJobRoles"]) {
 
 function createAuthenticatedRequest(params: Record<string, string> = {}) {
 	return {
-		authenticatedUser: { token: "jwt-token", role: "applicant" },
+		authenticatedUser: { token: "jwt-token", role: "user" },
 		originalUrl: "/jobs/job-roles",
 		params,
 	} as unknown as Request;
