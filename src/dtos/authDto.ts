@@ -22,6 +22,10 @@ export const RegisterSchema = z
 		path: ["confirmPassword"],
 	});
 
+export const LoginSchema = z.object({
+	email: z.string().email("Email must be a valid email format"),
+});
+
 export type RegisterRequestDto = z.infer<typeof RegisterSchema>;
 
 export interface RegisterResponseDto {

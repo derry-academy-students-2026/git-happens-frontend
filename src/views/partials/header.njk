@@ -14,7 +14,13 @@
 		<nav class="site-nav" aria-label="Main">
 			<a href="/jobs" {% if currentPath == "/jobs" %}aria-current="page"{% endif %}>Home</a>
 			<a href="/jobs/job-roles" {% if currentPath == "/jobs/job-roles" %}aria-current="page"{% endif %}>Job roles</a>
-			<a href="/auth/register" {% if currentPath == "/auth/register" %}aria-current="page"{% endif %}>Register</a>
+			{% if isAuthenticated %}
+				<form action="/auth/logout" method="post" class="site-nav__logout-form">
+					<button type="submit" class="site-nav__logout">Log out</button>
+				</form>
+			{% else %}
+				<a href="/auth/login" {% if currentPath == "/auth/login" %}aria-current="page"{% endif %}>Login</a>
+			{% endif %}
 		</nav>
 	</div>
 </header>
