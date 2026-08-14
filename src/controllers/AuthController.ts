@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { LoginSchema, RegisterSchema } from "../dtos/authDto.js";
 import Logger from "../lib/logger.js";
+import { sanitizeReturnTo } from "../middleware/auth.js";
 import type { AuthApiService } from "../services/authApiService.js";
 
 type ErrorWithStatusCode = Error & {
@@ -30,14 +31,16 @@ export class AuthController {
 		return `${trimmedEmail[0]}*****${trimmedEmail.slice(atIndex)}`;
 	}
 
-	/** Displays the login page. */
+	/**
+	 * Displays the login page with a sanitized post-login return target.
+	 *
+	 * @param req - Request containing optional `returnTo` and `registered` query params.
+	 * @param res - Response used to render the login template.
+	 */
 	showLogin(req: Request, res: Response): void {
-		const returnTo =
-			typeof req.query.returnTo === "string"
-				? req.query.returnTo
-				: "/jobs/job-roles";
+		const returnTo = sanitizeReturnTo(req.query.returnTo);
 		const registrationSuccess = req.query.registered === "1";
-		Logger.debug("Rendering login page");
+		Logger.debug(`Rendering login page with return target ${returnTo}`);
 		res.render("pages/login.njk", {
 			error: null,
 			success: registrationSuccess
@@ -48,7 +51,13 @@ export class AuthController {
 		});
 	}
 
-	/** Handles login submission and stores JWT in the browser session cookie. */
+	/**
+	 * Handles login submission and stores the returned JWT in a secure cookie.
+	 *
+	 * @param req - Request containing login form fields and optional `returnTo`.
+	 * @param res - Response used to render validation failures or redirect after login.
+	 * @returns Resolves after the response has been rendered or redirected.
+	 */
 	async login(req: Request, res: Response): Promise<void> {
 		const email = typeof req.body.email === "string" ? req.body.email : "";
 		const password =
@@ -56,10 +65,7 @@ export class AuthController {
 		const trimmedEmail = email.trim();
 		const trimmedPassword = password.trim();
 		const maskedEmail = this.maskEmailForLogs(trimmedEmail);
-		const returnTo =
-			typeof req.body.returnTo === "string" && req.body.returnTo
-				? req.body.returnTo
-				: "/jobs/job-roles";
+		const returnTo = sanitizeReturnTo(req.body.returnTo);
 
 		if (!trimmedEmail && !trimmedPassword) {
 			Logger.warn("Rejected login with empty email and password");
@@ -112,10 +118,14 @@ export class AuthController {
 		}
 	}
 
-	/** Clears the JWT session cookie and returns the user to the jobs landing page. */
-	async logout(_req: Request, res: Response): Promise<void> {
+	/**
+	 * Clears the JWT cookie and redirects to the login page.
+	 *
+	 * @param _req - Authenticated logout request.
+	 * @param res - Response used to clear the cookie and redirect to login.
+	 */
+	logout(_req: Request, res: Response): void {
 		Logger.info("Processing logout request");
-		await this.authApiService.logout();
 		res.clearCookie("jwt", {
 			path: "/",
 			httpOnly: true,
@@ -123,10 +133,15 @@ export class AuthController {
 			secure: process.env.NODE_ENV === "production",
 		});
 		Logger.info("Logout completed and jwt cookie cleared");
-		res.redirect("/jobs");
+		res.redirect("/auth/login");
 	}
 
-	/** Displays the registration page. */
+	/**
+	 * Displays the registration page.
+	 *
+	 * @param _req - Registration page request.
+	 * @param res - Response used to render the registration template.
+	 */
 	showRegister(_req: Request, res: Response): void {
 		Logger.debug("Rendering registration page");
 		res.render("pages/register.njk", {
@@ -134,11 +149,18 @@ export class AuthController {
 		});
 	}
 
-	/** Handles registration form submission with validation and account creation. */
+	/**
+	 * Handles registration form submission with validation and account creation.
+	 *
+	 * @param req - Request containing registration form fields.
+	 * @param res - Response used to render validation failures or redirect to login.
+	 * @returns Resolves after the response has been rendered or redirected.
+	 */
 	async register(req: Request, res: Response): Promise<void> {
 		const email = String(req.body.email ?? "").trim();
 		const password = String(req.body.password ?? "").trim();
 		const confirmPassword = String(req.body.confirmPassword ?? "").trim();
+		const maskedEmail = this.maskEmailForLogs(email);
 
 		const validation = RegisterSchema.safeParse({
 			email,
@@ -148,7 +170,7 @@ export class AuthController {
 
 		if (!validation.success) {
 			Logger.warn(
-				`Rejected registration due to validation failure for ${email}`,
+				`Rejected registration due to validation failure for ${maskedEmail}`,
 			);
 			const firstError = validation.error.issues[0];
 			const fieldName = String(firstError?.path[0] ?? "email");
@@ -163,15 +185,15 @@ export class AuthController {
 		}
 
 		try {
-			Logger.info(`Attempting registration for ${email}`);
+			Logger.info(`Attempting registration for ${maskedEmail}`);
 			await this.authApiService.register(email, password);
-			Logger.info(`Registration successful for ${email}`);
+			Logger.info(`Registration successful for ${maskedEmail}`);
 			res.redirect("/auth/login?registered=1");
 		} catch (error) {
 			const typedError = error as ErrorWithStatusCode;
 			const statusCode = typedError.statusCode ?? 500;
 			Logger.error(
-				`Registration failed for ${email} with status ${statusCode}: ${typedError.message}`,
+				`Registration failed for ${maskedEmail} with status ${statusCode}: ${typedError.message}`,
 			);
 			const errorMessage =
 				statusCode === 409

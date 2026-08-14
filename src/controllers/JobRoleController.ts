@@ -12,22 +12,34 @@ export class JobRoleController {
 	/**
 	 * Renders the job role list page.
 	 *
-	 * @param _req - The `GET /jobs/job-roles` request. Unused, as the route reads no
-	 * params, query or body.
+	 * @param req - The authenticated `GET /jobs/job-roles` request.
 	 * @param res - Renders `pages/job-role-list.njk` with a `jobRoles` array, or
 	 * `pages/error.njk` with a 500 on failure.
 	 * @returns Resolves once a response has been rendered.
 	 * @remarks Never rejects. Service failures are logged and rendered as a 500 error page.
 	 */
-	async getAll(_req: Request, res: Response): Promise<void> {
+	async getAll(req: Request, res: Response): Promise<void> {
 		try {
-			const jobRoles = await this.service.getAllJobRoles();
+			const token = req.authenticatedUser?.token;
+			if (!token) {
+				Logger.warn("Job role list requested without JWT; redirecting to login");
+				res.redirect("/auth/login?returnTo=%2Fjobs%2Fjob-roles");
+				return;
+			}
+
+			const jobRoles = await this.service.getAllJobRoles(token);
 			Logger.debug(`Rendering job role list with ${jobRoles.length} roles`);
 			res.render("pages/job-role-list.njk", { jobRoles });
 		} catch (error) {
 			Logger.error(
 				`Failed to render the job role list: ${error instanceof Error ? error.message : String(error)}`,
 			);
+			if (error instanceof Error && error.message === "Authentication required") {
+				Logger.warn("Backend rejected job role list token; clearing JWT cookie");
+				res.clearCookie("jwt", { path: "/" });
+				res.redirect("/auth/login?returnTo=%2Fjobs%2Fjob-roles");
+				return;
+			}
 			res
 				.status(500)
 				.render("pages/error.njk", { error: "Internal Server Error" });
@@ -56,12 +68,25 @@ export class JobRoleController {
 		}
 
 		try {
-			const jobRole = await this.service.getJobRoleById(id);
+			const token = req.authenticatedUser?.token;
+			if (!token) {
+				Logger.warn(`Job role ${id} requested without JWT; redirecting to login`);
+				res.redirect(`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+				return;
+			}
+
+			const jobRole = await this.service.getJobRoleById(id, token);
 			Logger.debug(`Rendering job role information for id ${id}`);
 			res.render("pages/job-role-information.njk", { jobRole });
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			Logger.error(`Failed to render job role ${id}: ${message}`);
+			if (message === "Authentication required") {
+				Logger.warn(`Backend rejected token for job role ${id}; clearing JWT cookie`);
+				res.clearCookie("jwt", { path: "/" });
+				res.redirect(`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+				return;
+			}
 			if (message === "Job role not found") {
 				res
 					.status(404)

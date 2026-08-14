@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/AuthController.js";
 import Logger from "../lib/logger.js";
+import { requireJwt } from "../middleware/auth.js";
 import { AuthApiServiceImpl } from "../services/authApiService.js";
 
 const router = Router();
@@ -35,7 +36,7 @@ router.post("/login", (req, res) => {
  * @param req - Express request for logout.
  * @param res - Express response used to clear session cookie and redirect.
  */
-router.post("/logout", (req, res) => {
+router.post("/logout", requireJwt, (req, res) => {
 	Logger.debug("POST /auth/logout");
 	authController.logout(req, res);
 });

@@ -21,8 +21,10 @@ const jobRoles = [
 
 function createResponse() {
 	const res = {
+		clearCookie: vi.fn(),
 		render: vi.fn(),
 		status: vi.fn(),
+		redirect: vi.fn(),
 	};
 	res.status.mockReturnValue(res);
 	return res as unknown as Response & typeof res;
@@ -32,15 +34,23 @@ function createService(getAllJobRoles: JobRoleService["getAllJobRoles"]) {
 	return { getAllJobRoles } as JobRoleService;
 }
 
+function createAuthenticatedRequest(params: Record<string, string> = {}) {
+	return {
+		authenticatedUser: { token: "jwt-token", role: "user" },
+		originalUrl: "/jobs/job-roles",
+		params,
+	} as unknown as Request;
+}
+
 describe("JobRoleController.getAll", () => {
 	it("renders the job role list with the roles from the service", async () => {
 		const getAllJobRoles = vi.fn().mockResolvedValue(jobRoles);
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
-		await controller.getAll({} as Request, res);
+		await controller.getAll(createAuthenticatedRequest(), res);
 
-		expect(getAllJobRoles).toHaveBeenCalledOnce();
+		expect(getAllJobRoles).toHaveBeenCalledWith("jwt-token");
 		expect(res.render).toHaveBeenCalledWith("pages/job-role-list.njk", {
 			jobRoles,
 		});
@@ -52,7 +62,7 @@ describe("JobRoleController.getAll", () => {
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
-		await controller.getAll({} as Request, res);
+		await controller.getAll(createAuthenticatedRequest(), res);
 
 		expect(res.status).toHaveBeenCalledWith(500);
 		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
@@ -65,17 +75,32 @@ describe("JobRoleController.getAll", () => {
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
-		await controller.getAll({} as Request, res);
+		await controller.getAll(createAuthenticatedRequest(), res);
 
 		expect(res.status).toHaveBeenCalledWith(500);
 		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
 			error: "Internal Server Error",
 		});
 	});
+
+	it("clears the jwt and redirects when the backend requires authentication", async () => {
+		const getAllJobRoles = vi
+			.fn()
+			.mockRejectedValue(new Error("Authentication required"));
+		const controller = new JobRoleController(createService(getAllJobRoles));
+		const res = createResponse();
+
+		await controller.getAll(createAuthenticatedRequest(), res);
+
+		expect(res.clearCookie).toHaveBeenCalledWith("jwt", { path: "/" });
+		expect(res.redirect).toHaveBeenCalledWith(
+			"/auth/login?returnTo=%2Fjobs%2Fjob-roles",
+		);
+	});
 });
 
 function createRequest(id: string) {
-	return { params: { id } } as unknown as Request;
+	return createAuthenticatedRequest({ id });
 }
 
 describe("JobRoleController.getById", () => {
@@ -88,7 +113,7 @@ describe("JobRoleController.getById", () => {
 
 		await controller.getById(createRequest("1"), res);
 
-		expect(getJobRoleById).toHaveBeenCalledWith(1);
+		expect(getJobRoleById).toHaveBeenCalledWith(1, "jwt-token");
 		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
 			jobRole: jobRoles[0],
 		});
@@ -143,5 +168,22 @@ describe("JobRoleController.getById", () => {
 		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
 			error: "Internal Server Error",
 		});
+	});
+
+	it("clears the jwt and redirects when fetching detail requires authentication", async () => {
+		const getJobRoleById = vi
+			.fn()
+			.mockRejectedValue(new Error("Authentication required"));
+		const controller = new JobRoleController({
+			getJobRoleById,
+		} as unknown as JobRoleService);
+		const res = createResponse();
+
+		await controller.getById(createRequest("1"), res);
+
+		expect(res.clearCookie).toHaveBeenCalledWith("jwt", { path: "/" });
+		expect(res.redirect).toHaveBeenCalledWith(
+			"/auth/login?returnTo=%2Fjobs%2Fjob-roles",
+		);
 	});
 });

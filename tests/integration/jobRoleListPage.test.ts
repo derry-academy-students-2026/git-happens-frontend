@@ -57,6 +57,9 @@ describe("job role list page", () => {
 		expect(response.text).toContain("Band 2 - Mid-Level");
 		expect(response.text).toContain("Software Engineering");
 		expect(response.text).toContain("Band 3 - Senior");
+		expect(get).toHaveBeenCalledWith("job-roles", {
+			headers: { Authorization: "Bearer test-token" },
+		});
 	});
 
 	it("renders the closing date without the ISO time portion", async () => {

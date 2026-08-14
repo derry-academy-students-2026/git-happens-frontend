@@ -142,7 +142,7 @@ describe("jobRouter", () => {
 			.get("/jobs/job-roles/1")
 			.set("Cookie", ["jwt=test-token"]);
 
-		expect(getJobRoleById).toHaveBeenCalledWith(1);
+		expect(getJobRoleById).toHaveBeenCalledWith(1, "test-token");
 		expect(response.status).toBe(200);
 		expect(response.text).toContain("Frontend Developer");
 		expect(response.text).toContain("Derry");
@@ -234,13 +234,13 @@ describe("jobRouter", () => {
 		expect(response.text).toContain("Please enter your email and password.");
 	});
 
-	it("logs out by clearing the jwt cookie and redirecting to jobs", async () => {
+	it("logs out by clearing the jwt cookie and redirecting to login", async () => {
 		const response = await request(app)
 			.post("/auth/logout")
 			.set("Cookie", ["jwt=test-token"]);
 
 		expect(response.status).toBe(302);
-		expect(response.headers.location).toBe("/jobs");
+		expect(response.headers.location).toBe("/auth/login");
 		expect(response.headers["set-cookie"]?.[0]).toContain("jwt=;");
 	});
 });

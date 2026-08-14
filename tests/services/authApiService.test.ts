@@ -251,7 +251,7 @@ describe("AuthApiServiceImpl.logout", () => {
 		post.mockResolvedValue({ data: {} });
 
 		await expect(authApiService.logout()).resolves.toBeUndefined();
-		expect(post).toHaveBeenCalledWith("/auth/logout");
+		expect(post).toHaveBeenCalledWith("/auth/logout", undefined, undefined);
 	});
 
 	it("posts to the configured logout path", async () => {
@@ -259,7 +259,16 @@ describe("AuthApiServiceImpl.logout", () => {
 		post.mockResolvedValue({ data: {} });
 
 		await expect(authApiService.logout()).resolves.toBeUndefined();
-		expect(post).toHaveBeenCalledWith("/v2/auth/logout");
+		expect(post).toHaveBeenCalledWith("/v2/auth/logout", undefined, undefined);
+	});
+
+	it("sends the bearer token when supplied", async () => {
+		post.mockResolvedValue({ data: {} });
+
+		await expect(authApiService.logout("jwt-token")).resolves.toBeUndefined();
+		expect(post).toHaveBeenCalledWith("/auth/logout", undefined, {
+			headers: { Authorization: "Bearer jwt-token" },
+		});
 	});
 
 	it("resolves when logout endpoint is unavailable", async () => {

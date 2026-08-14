@@ -8,7 +8,6 @@ vi.mock("../../src/services/authApiService.js", () => ({
 	AuthApiServiceImpl: class {
 		register = mockRegister;
 		login = mockLogin;
-		logout = vi.fn();
 	},
 }));
 
@@ -69,6 +68,28 @@ describe("authRouter", () => {
 		expect(response.status).toBe(400);
 		expect(response.text).toContain("Please enter your email and password.");
 		expect(mockLogin).not.toHaveBeenCalled();
+	});
+
+	it("falls back to job roles when login returnTo is external", async () => {
+		const response = await request(app).post("/auth/login").type("form").send({
+			email: "test@example.com",
+			password: "password123",
+			returnTo: "https://attacker.example",
+		});
+
+		expect(response.status).toBe(302);
+		expect(response.headers.location).toBe("/jobs/job-roles");
+	});
+
+	it("falls back to job roles when login returnTo is protocol-relative", async () => {
+		const response = await request(app).post("/auth/login").type("form").send({
+			email: "test@example.com",
+			password: "password123",
+			returnTo: "//attacker.example",
+		});
+
+		expect(response.status).toBe(302);
+		expect(response.headers.location).toBe("/jobs/job-roles");
 	});
 
 	it("returns validation errors for invalid email", async () => {

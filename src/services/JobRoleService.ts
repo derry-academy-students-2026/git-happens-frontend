@@ -3,8 +3,32 @@ import apiClient from "../config/apiClient.js";
 import Logger from "../lib/logger.js";
 import type { JobRoleDTO } from "../models/jobRoleDTO.js";
 
+type UnauthorizedResponse = {
+	message?: string;
+	redirectTo?: string;
+};
+
 /** Fetches job role data from the backend API. */
 export class JobRoleService {
+	/**
+	 * Converts backend auth failures into a frontend redirect signal.
+	 *
+	 * @param error - Error thrown by the API client.
+	 * @throws {Error} When backend reports authentication is required.
+	 */
+	private throwIfUnauthorized(error: unknown): void {
+		if (!axios.isAxiosError(error)) {
+			return;
+		}
+
+		const status = error.response?.status;
+		const body = error.response?.data as UnauthorizedResponse | undefined;
+		if (status === 401 || body?.redirectTo === "/login") {
+			Logger.warn("Backend reported authentication required for job role API call");
+			throw new Error("Authentication required");
+		}
+	}
+
 	/**
 	 * Retrieves every job role from the backend API.
 	 *
@@ -13,13 +37,16 @@ export class JobRoleService {
 	 * @throws {Error} "Backend server error" when the API responds 500.
 	 * @throws {Error} The original error for any other failure, such as a timeout.
 	 */
-	async getAllJobRoles(): Promise<JobRoleDTO[]> {
+	async getAllJobRoles(token: string): Promise<JobRoleDTO[]> {
 		try {
-			Logger.debug("Requesting job roles from the API");
-			const response = await apiClient.get<JobRoleDTO[]>("job-roles");
+			Logger.debug("Requesting job roles from the API with bearer token");
+			const response = await apiClient.get<JobRoleDTO[]>("job-roles", {
+				headers: { Authorization: `Bearer ${token}` },
+			});
 			Logger.info(`API returned ${response.data.length} job roles`);
 			return response.data;
 		} catch (error) {
+			this.throwIfUnauthorized(error);
 			if (axios.isAxiosError(error)) {
 				const status = error.response?.status;
 				Logger.error(
@@ -43,13 +70,16 @@ export class JobRoleService {
 	 * @throws {Error} "Backend server error" when the API responds 500.
 	 * @throws {Error} The original error for any other failure, such as a timeout.
 	 */
-	async getJobRoleById(id: number): Promise<JobRoleDTO> {
+	async getJobRoleById(id: number, token: string): Promise<JobRoleDTO> {
 		try {
-			Logger.debug(`Requesting job role ${id} from the API`);
-			const response = await apiClient.get<JobRoleDTO>(`job-roles/${id}`);
+			Logger.debug(`Requesting job role ${id} from the API with bearer token`);
+			const response = await apiClient.get<JobRoleDTO>(`job-roles/${id}`, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
 			Logger.info(`API returned job role ${id}`);
 			return response.data;
 		} catch (error) {
+			this.throwIfUnauthorized(error);
 			if (axios.isAxiosError(error)) {
 				const status = error.response?.status;
 				Logger.error(

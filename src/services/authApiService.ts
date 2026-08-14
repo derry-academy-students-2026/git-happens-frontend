@@ -26,7 +26,7 @@ export class AuthApiError extends Error {
 export interface AuthApiService {
 	register(email: string, password: string): Promise<RegisterResponseDto>;
 	login(email: string, password: string): Promise<{ token: string }>;
-	logout(): Promise<void>;
+	logout(token?: string): Promise<void>;
 }
 
 /** Service class for handling authentication API calls. */
@@ -103,12 +103,15 @@ export class AuthApiServiceImpl implements AuthApiService {
 	 * @returns Resolves when logout has completed or when backend logout is unreachable.
 	 * @throws {Error} Re-throws non-Axios failures.
 	 */
-	async logout(): Promise<void> {
+	async logout(token?: string): Promise<void> {
 		const logoutPath = process.env.AUTH_LOGOUT_PATH ?? "/auth/logout";
 		Logger.debug(`Calling logout API path ${logoutPath}`);
 
 		try {
-			await apiClient.post(logoutPath);
+			const config = token
+				? { headers: { Authorization: `Bearer ${token}` } }
+				: undefined;
+			await apiClient.post(logoutPath, undefined, config);
 			Logger.info("Logout API call succeeded");
 		} catch (error) {
 			if (axios.isAxiosError(error)) {
@@ -135,7 +138,8 @@ export class AuthApiServiceImpl implements AuthApiService {
 		password: string,
 	): Promise<RegisterResponseDto> {
 		const registerPath = process.env.AUTH_REGISTER_PATH ?? "/auth/register";
-		Logger.debug(`Calling register API path ${registerPath} for ${email}`);
+		const maskedEmail = this.maskEmailForLogs(email);
+		Logger.debug(`Calling register API path ${registerPath} for ${maskedEmail}`);
 
 		try {
 			const response = await apiClient.post<RegisterResponseDto>(registerPath, {
@@ -143,7 +147,7 @@ export class AuthApiServiceImpl implements AuthApiService {
 				password,
 			});
 
-			Logger.info(`Register API call succeeded for ${email}`);
+			Logger.info(`Register API call succeeded for ${maskedEmail}`);
 
 			return response.data;
 		} catch (error) {
@@ -151,7 +155,7 @@ export class AuthApiServiceImpl implements AuthApiService {
 				const status = error.response?.status;
 				const message = (error.response?.data as ApiError | undefined)?.message;
 				Logger.warn(
-					`Register API call failed for ${email} with status ${status ?? "none"}`,
+					`Register API call failed for ${maskedEmail} with status ${status ?? "none"}`,
 				);
 
 				if (status === 400) {
