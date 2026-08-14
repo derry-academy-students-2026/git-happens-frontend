@@ -15,6 +15,12 @@
 {% endblock %}
 
 {% block content %}
+	{% if query.applied %}
+		<div class="auth-form__success" role="status">
+			<p>Thank you! Your application has been submitted successfully.</p>
+		</div>
+	{% endif %}
+
 	<article class="job-detail">
 		<div class="job-detail__heading">
 			<h2 class="display display--section">Role details</h2>
@@ -58,6 +64,14 @@
 	</article>
 
 	<div class="job-detail__actions">
+		{% if authenticatedUser.role === "user" and jobRole.status.statusName === "Open" and jobRole.numberOfOpenPositions > 0 %}
+			<a
+				class="button button--solid"
+				href="/jobs/job-roles/{{ jobRole.jobRoleId }}/apply"
+			>
+				Apply now
+			</a>
+		{% endif %}
 		<a
 			class="button button--solid"
 			href="{{ jobRole.sharepointUrl }}"

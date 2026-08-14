@@ -529,11 +529,116 @@ img {
 	border-color: var(--kainos-bright-blue);
 }
 
+.auth-form__input--invalid {
+	border-color: #dc2626;
+	background-color: #fef2f2;
+}
+
+.auth-form__error-toast {
+	display: none;
+	font-size: 0.875rem;
+	color: #991b1b;
+	background-color: #fee2e2;
+	border-left: 4px solid #dc2626;
+	padding: 0.75rem 0.85rem;
+	margin-top: 0.35rem;
+	border-radius: 2px;
+	animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-5px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.auth-form__input--invalid:focus-visible {
+	outline-color: #dc2626;
+	border-color: #dc2626;
+}
+
 .auth-form__hint {
 	display: block;
 	margin-top: 0.25rem;
 	color: var(--kainos-grey);
 	font-size: 0.875rem;
+}
+
+.auth-form__textarea {
+	padding: 0.75rem 0.85rem;
+	font: inherit;
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	color: var(--kainos-blue);
+	background: var(--white);
+	resize: vertical;
+	min-height: 150px;
+}
+
+.auth-form__textarea:focus-visible {
+	outline: 3px solid var(--kainos-bright-blue);
+	outline-offset: 2px;
+	border-color: var(--kainos-bright-blue);
+}
+
+.auth-form__phone-wrapper {
+	display: grid;
+	grid-template-columns: 0.8fr 1.5fr;
+	gap: 1rem;
+	align-items: flex-end;
+}
+
+.auth-form__phone-field {
+	display: grid;
+	gap: 0.45rem;
+}
+
+.auth-form__phone-field label {
+	font-family: var(--font-display);
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--kainos-dark-green);
+}
+
+.auth-form__phone-field input {
+	padding: 0.75rem 0.85rem;
+	font: inherit;
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	color: var(--kainos-blue);
+	background: var(--white);
+}
+
+.auth-form__phone-field input:focus-visible {
+	outline: 3px solid var(--kainos-bright-blue);
+	outline-offset: 2px;
+	border-color: var(--kainos-bright-blue);
+}
+
+.auth-form__phone-field input::placeholder {
+	color: var(--kainos-grey);
+	opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+	.auth-form__phone-wrapper {
+		grid-template-columns: 1fr;
+		align-items: stretch;
+	}
+}
+
+.auth-form__actions {
+	display: flex;
+	gap: 1rem;
+	margin-top: 1rem;
+	flex-wrap: wrap;
 }
 
 .auth-card__footer {

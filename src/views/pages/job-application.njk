@@ -1,0 +1,378 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Apply for {{ jobRole.roleName }}{% endblock %}
+
+{% block masthead %}
+	<section class="masthead masthead--compact">
+		<div class="shell">
+			<span class="section-label">Application</span>
+			<h1 class="display display--page">Apply for {{ jobRole.roleName }}</h1>
+			<p class="lede">
+				{{ jobRole.capability.capabilityName }} in {{ jobRole.location }}.
+			</p>
+		</div>
+	</section>
+{% endblock %}
+
+{% block content %}
+	<article class="job-detail">
+		<form method="POST" class="auth-form" id="applicationForm">
+			<div class="auth-form__field">
+				<label for="fullName" class="auth-form__label">Full name</label>
+				<input
+					type="text"
+					id="fullName"
+					name="fullName"
+					class="auth-form__input"
+					minlength="1"
+					maxlength="120"
+					required
+					autocomplete="name"
+					aria-describedby="fullNameHint fullNameError"
+				/>
+				<span class="auth-form__hint" id="fullNameHint">Required. Maximum 120 characters.</span>
+				<span class="auth-form__error-toast" id="fullNameError" role="alert" aria-live="polite"></span>
+			</div>
+
+			<div class="auth-form__field">
+				<label for="email" class="auth-form__label">Contact email</label>
+				<input
+					type="email"
+					id="email"
+					name="email"
+					class="auth-form__input"
+					required
+					autocomplete="email"
+					aria-describedby="emailHint emailError"
+					value="{{ authenticatedUser.email or '' }}"
+				/>
+				<span class="auth-form__hint" id="emailHint">Required. Your registered email address.</span>
+				<span class="auth-form__error-toast" id="emailError" role="alert" aria-live="polite"></span>
+			</div>
+
+			<div class="auth-form__field">
+				<div class="auth-form__phone-wrapper">
+					<div class="auth-form__phone-field">
+						<label for="countryCode" class="auth-form__label">Country code</label>
+						<input
+							type="tel"
+							id="countryCode"
+							name="countryCode"
+							class="auth-form__input"
+							pattern="\+\d{1,3}"
+							maxlength="4"
+							placeholder="+44"
+							required
+							autocomplete="tel-country-code"
+							aria-describedby="countryCodeHint countryCodeError"
+						/>
+						<span class="auth-form__hint" id="countryCodeHint">Format: +XXX (e.g., +44)</span>
+						<span class="auth-form__error-toast" id="countryCodeError" role="alert" aria-live="polite"></span>
+					</div>
+
+					<div class="auth-form__phone-field">
+						<label for="phoneNumber" class="auth-form__label">Phone number</label>
+						<input
+							type="tel"
+							id="phoneNumber"
+							name="phoneNumber"
+							class="auth-form__input"
+							minlength="10"
+							maxlength="14"
+							pattern="[0-9\s\-()]+"
+							placeholder="0123 456789"
+							required
+							autocomplete="tel-national"
+							aria-describedby="phoneNumberHint phoneNumberError"
+						/>
+						<span class="auth-form__hint" id="phoneNumberHint">
+							Exactly 10 digits. Use spaces, hyphens, or parentheses for formatting (e.g., 0123 456789).
+						</span>
+						<span class="auth-form__error-toast" id="phoneNumberError" role="alert" aria-live="polite"></span>
+					</div>
+				</div>
+			</div>
+
+			<div class="auth-form__field">
+				<label for="applicationText" class="auth-form__label">Tell us why you're interested in this role</label>
+				<textarea
+					id="applicationText"
+					name="applicationText"
+					class="auth-form__textarea"
+					minlength="1"
+					maxlength="5000"
+					rows="8"
+					required
+					aria-describedby="applicationTextHint applicationTextError"
+				></textarea>
+				<span class="auth-form__hint" id="applicationTextHint">Required. Maximum 5000 characters.</span>
+				<span class="auth-form__error-toast" id="applicationTextError" role="alert" aria-live="polite"></span>
+			</div>
+
+			<div class="auth-form__field">
+				<label for="previousExperience" class="auth-form__label">Previous relevant experience (optional)</label>
+				<textarea
+					id="previousExperience"
+					name="previousExperience"
+					class="auth-form__textarea"
+					maxlength="3000"
+					rows="6"
+					autocomplete="off"
+					aria-describedby="previousExperienceHint previousExperienceError"
+				></textarea>
+				<span class="auth-form__hint" id="previousExperienceHint">Optional. Tell us about relevant experience. Maximum 3000 characters.</span>
+				<span class="auth-form__error-toast" id="previousExperienceError" role="alert" aria-live="polite"></span>
+			</div>
+
+			<div class="auth-form__actions">
+				<button type="submit" class="button button--solid">Submit application</button>
+				<a href="/jobs/job-roles/{{ jobRole.jobRoleId }}" class="button button--ink">Cancel</a>
+			</div>
+		</form>
+
+		<script>
+			const form = document.getElementById('applicationForm');
+			const fullNameInput = document.getElementById('fullName');
+			const countryCodeInput = document.getElementById('countryCode');
+			const phoneInput = document.getElementById('phoneNumber');
+			const emailInput = document.getElementById('email');
+			const previousExperienceInput = document.getElementById('previousExperience');
+
+			// Helper function to show error toast
+			function showErrorToast(inputId, message) {
+				const input = document.getElementById(inputId);
+				const errorToast = document.getElementById(`${inputId}Error`);
+				if (errorToast) {
+					errorToast.textContent = message;
+					errorToast.style.display = 'block';
+					input?.classList.add('auth-form__input--invalid');
+				}
+			}
+
+			// Helper function to hide error toast
+			function hideErrorToast(inputId) {
+				const input = document.getElementById(inputId);
+				const errorToast = document.getElementById(`${inputId}Error`);
+				if (errorToast) {
+					errorToast.textContent = '';
+					errorToast.style.display = 'none';
+					input?.classList.remove('auth-form__input--invalid');
+				}
+			}
+
+			// Validate full name - letters only, spaces, hyphens, apostrophes
+			function validateFullName(value) {
+				const hasValidChars = /^[a-zA-Z\s\-']*$/.test(value);
+				const hasAtLeastOneLetter = /[a-zA-Z]/.test(value);
+				return hasValidChars && hasAtLeastOneLetter;
+			}
+
+			// Validate country code format
+			function validateCountryCode(value) {
+				return /^\+\d{1,3}$/.test(value);
+			}
+
+			// Validate phone number format - exactly 10 digits
+			function validatePhoneNumber(value) {
+				const digitsOnly = value.replace(/\D/g, "");
+				return /^[0-9\s\-()]+$/.test(value) && digitsOnly.length === 10;
+			}
+
+			// Validate email
+			function validateEmail(value) {
+				return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+			}
+
+			// Full name validation
+			fullNameInput?.addEventListener('blur', function() {
+				if (!this.value) {
+					showErrorToast('fullName', 'Full name is required');
+				} else {
+					const hasValidChars = /^[a-zA-Z\s\-']*$/.test(this.value);
+					const hasAtLeastOneLetter = /[a-zA-Z]/.test(this.value);
+
+					if (!hasValidChars) {
+						showErrorToast('fullName', 'Full name can only contain letters, spaces, hyphens, and apostrophes');
+						Logger.debug(`Invalid name characters: ${this.value}`);
+					} else if (!hasAtLeastOneLetter) {
+						showErrorToast('fullName', 'Full name must contain at least one letter');
+						Logger.debug(`Full name has no letters: ${this.value}`);
+					} else {
+						hideErrorToast('fullName');
+					}
+				}
+			});
+
+			fullNameInput?.addEventListener('input', function() {
+				if (this.value && validateFullName(this.value)) {
+					hideErrorToast('fullName');
+				}
+			});
+
+			// Country code validation
+			countryCodeInput?.addEventListener('blur', function() {
+				if (!this.value) {
+					showErrorToast('countryCode', 'Country code is required');
+				} else if (!validateCountryCode(this.value)) {
+					showErrorToast('countryCode', 'Country code must be in format +XXX (e.g., +44)');
+					Logger.debug(`Invalid country code format: ${this.value}`);
+				} else {
+					hideErrorToast('countryCode');
+				}
+			});
+
+			countryCodeInput?.addEventListener('input', function() {
+				if (this.value && validateCountryCode(this.value)) {
+					hideErrorToast('countryCode');
+				}
+			});
+
+			// Phone number validation
+			phoneInput?.addEventListener('blur', function() {
+				if (!this.value) {
+					showErrorToast('phoneNumber', 'Phone number is required');
+				} else {
+					const digitsOnly = this.value.replace(/\D/g, "");
+					const hasInvalidChars = !/^[0-9\s\-()]*$/.test(this.value);
+					const wrongLength = digitsOnly.length !== 10;
+
+					if (hasInvalidChars) {
+						showErrorToast('phoneNumber', 'Phone number contains invalid characters. Only numbers, spaces, hyphens, and parentheses allowed');
+						Logger.debug(`Invalid phone characters (letters?): ${this.value}`);
+					} else if (wrongLength) {
+						showErrorToast('phoneNumber', `Phone number must be exactly 10 digits (you entered ${digitsOnly.length})`);
+						Logger.debug(`Phone number has ${digitsOnly.length} digits, needs 10`);
+					} else {
+						hideErrorToast('phoneNumber');
+					}
+				}
+			});
+
+			phoneInput?.addEventListener('input', function() {
+				if (this.value) {
+					const digitsOnly = this.value.replace(/\D/g, "");
+					const hasInvalidChars = !/^[0-9\s\-()]*$/.test(this.value);
+					
+					if (!hasInvalidChars && digitsOnly.length === 10) {
+						hideErrorToast('phoneNumber');
+					}
+				}
+			});
+
+			// Email validation
+			emailInput?.addEventListener('blur', function() {
+				if (!this.value) {
+					showErrorToast('email', 'Contact email is required');
+				} else if (!validateEmail(this.value)) {
+					showErrorToast('email', 'Email must be a valid email address');
+					Logger.debug(`Invalid email format: ${this.value}`);
+				} else {
+					hideErrorToast('email');
+				}
+			});
+
+			emailInput?.addEventListener('input', function() {
+				if (this.value && validateEmail(this.value)) {
+					hideErrorToast('email');
+				}
+			});
+
+			form?.addEventListener('submit', function(e) {
+				let hasErrors = false;
+
+				// Validate full name
+				const fullName = document.getElementById('fullName').value.trim();
+				if (!fullName) {
+					showErrorToast('fullName', 'Full name is required');
+					hasErrors = true;
+				} else if (fullName.length > 120) {
+					showErrorToast('fullName', 'Full name must not exceed 120 characters');
+					hasErrors = true;
+				} else {
+					const hasValidChars = /^[a-zA-Z\s\-']*$/.test(fullName);
+					const hasAtLeastOneLetter = /[a-zA-Z]/.test(fullName);
+
+					if (!hasValidChars) {
+						showErrorToast('fullName', 'Full name can only contain letters, spaces, hyphens, and apostrophes');
+						hasErrors = true;
+					} else if (!hasAtLeastOneLetter) {
+						showErrorToast('fullName', 'Full name must contain at least one letter');
+						hasErrors = true;
+					} else {
+						hideErrorToast('fullName');
+					}
+				}
+
+				// Validate email
+				const email = document.getElementById('email').value.trim();
+				if (!email) {
+					showErrorToast('email', 'Contact email is required');
+					hasErrors = true;
+				} else if (!validateEmail(email)) {
+					showErrorToast('email', 'Contact email must be a valid email address');
+					hasErrors = true;
+				} else {
+					hideErrorToast('email');
+				}
+
+				// Validate country code
+				const countryCode = document.getElementById('countryCode').value.trim();
+				if (!countryCode) {
+					showErrorToast('countryCode', 'Country code is required');
+					hasErrors = true;
+				} else if (!validateCountryCode(countryCode)) {
+					showErrorToast('countryCode', 'Country code must be in format +XXX (e.g., +44)');
+					hasErrors = true;
+				} else {
+					hideErrorToast('countryCode');
+				}
+
+				// Validate phone number
+				const phoneNumber = document.getElementById('phoneNumber').value.trim();
+				if (!phoneNumber) {
+					showErrorToast('phoneNumber', 'Phone number is required');
+					hasErrors = true;
+				} else {
+					const phoneDigitsOnly = phoneNumber.replace(/\D/g, "");
+					if (!/^[0-9\s\-()]+$/.test(phoneNumber)) {
+						showErrorToast('phoneNumber', 'Phone number contains invalid characters. Only numbers, spaces, hyphens, and parentheses allowed');
+						hasErrors = true;
+					} else if (phoneDigitsOnly.length !== 10) {
+						showErrorToast('phoneNumber', `Phone number must be exactly 10 digits (you entered ${phoneDigitsOnly.length})`);
+						hasErrors = true;
+					} else {
+						hideErrorToast('phoneNumber');
+					}
+				}
+
+				// Validate application text
+				const applicationText = document.getElementById('applicationText').value.trim();
+				if (!applicationText) {
+					showErrorToast('applicationText', 'Application text is required');
+					hasErrors = true;
+				} else if (applicationText.length > 5000) {
+					showErrorToast('applicationText', 'Application text must not exceed 5000 characters');
+					hasErrors = true;
+				} else {
+					hideErrorToast('applicationText');
+				}
+
+				// Validate previous experience (optional but if provided, must be < 3000 chars)
+				const previousExperience = document.getElementById('previousExperience').value.trim();
+				if (previousExperience && previousExperience.length > 3000) {
+					showErrorToast('previousExperience', 'Previous experience must not exceed 3000 characters');
+					hasErrors = true;
+				} else {
+					hideErrorToast('previousExperience');
+				}
+
+				if (hasErrors) {
+					e.preventDefault();
+					// Scroll to first error
+					const firstErrorToast = document.querySelector('.auth-form__error-toast[style*="display: block"]');
+					firstErrorToast?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				}
+			});
+		</script>
+	</article>
+{% endblock %}
