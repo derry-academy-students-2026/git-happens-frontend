@@ -5,6 +5,7 @@ import express from "express";
 import nunjucks from "nunjucks";
 import morganMiddleware from "./config/morganMiddleware.js";
 import Logger from "./lib/logger.js";
+import { decodeAuthenticatedUser, getJwtFromCookie } from "./middleware/auth.js";
 import authRouter from "./routes/authRouter.js";
 import jobRouter from "./routes/jobRouter.js";
 
@@ -44,11 +45,16 @@ app.use((req, res, next) => {
 			? req.path.slice(0, -1)
 			: req.path;
 	res.locals.currentPath = normalizedPath;
-	const cookieHeader = req.headers.cookie ?? "";
-	res.locals.isAuthenticated = cookieHeader
-		.split(";")
-		.map((item) => item.trim())
-		.some((item) => item.startsWith("jwt="));
+	const token = getJwtFromCookie(req.headers.cookie);
+	if (token) {
+		const authenticatedUser = decodeAuthenticatedUser(token);
+		req.authenticatedUser = authenticatedUser;
+		res.locals.isAuthenticated = true;
+		res.locals.isAdmin = authenticatedUser.role === "admin";
+	} else {
+		res.locals.isAuthenticated = false;
+		res.locals.isAdmin = false;
+	}
 	next();
 });
 

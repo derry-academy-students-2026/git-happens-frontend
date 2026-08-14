@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { JobRoleController } from "../controllers/JobRoleController.js";
 import Logger from "../lib/logger.js";
-import { requireJwt } from "../middleware/requireJwt.js";
+import { requireJwt } from "../middleware/auth.js";
 import { JobRoleService } from "../services/JobRoleService.js";
 
 const jobRouter = Router();
