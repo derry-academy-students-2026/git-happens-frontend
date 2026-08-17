@@ -19,6 +19,14 @@ const jobRoles = [
 	},
 ];
 
+const pagination = {
+	jobRoles,
+	page: 1,
+	pageSize: 10,
+	totalCount: 1,
+	totalPages: 1,
+};
+
 function createResponse() {
 	const res = {
 		clearCookie: vi.fn(),
@@ -39,22 +47,42 @@ function createAuthenticatedRequest(params: Record<string, string> = {}) {
 		authenticatedUser: { token: "jwt-token", role: "user" },
 		originalUrl: "/jobs/job-roles",
 		params,
+		query: {},
 	} as unknown as Request;
 }
 
 describe("JobRoleController.getAll", () => {
 	it("renders the job role list with the roles from the service", async () => {
-		const getAllJobRoles = vi.fn().mockResolvedValue(jobRoles);
+		const getAllJobRoles = vi.fn().mockResolvedValue(pagination);
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
 		await controller.getAll(createAuthenticatedRequest(), res);
 
-		expect(getAllJobRoles).toHaveBeenCalledWith("jwt-token");
+		expect(getAllJobRoles).toHaveBeenCalledWith("jwt-token", 1);
 		expect(res.render).toHaveBeenCalledWith("pages/job-role-list.njk", {
 			jobRoles,
+			pagination,
 		});
 		expect(res.status).not.toHaveBeenCalled();
+	});
+
+	it("passes the requested page to the service", async () => {
+		const getAllJobRoles = vi
+			.fn()
+			.mockResolvedValue({ ...pagination, page: 2 });
+		const controller = new JobRoleController(createService(getAllJobRoles));
+		const res = createResponse();
+
+		await controller.getAll(
+			{
+				...createAuthenticatedRequest(),
+				query: { page: "2" },
+			} as unknown as Request,
+			res,
+		);
+
+		expect(getAllJobRoles).toHaveBeenCalledWith("jwt-token", 2);
 	});
 
 	it("renders the error page with a 500 when the service rejects", async () => {
@@ -116,8 +144,45 @@ describe("JobRoleController.getById", () => {
 		expect(getJobRoleById).toHaveBeenCalledWith(1, "jwt-token");
 		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
 			jobRole: jobRoles[0],
+			backHref: "/jobs/job-roles",
 		});
 		expect(res.status).not.toHaveBeenCalled();
+	});
+
+	it("builds a back link to the list page the role was viewed from", async () => {
+		const getJobRoleById = vi.fn().mockResolvedValue(jobRoles[0]);
+		const controller = new JobRoleController({
+			getJobRoleById,
+		} as unknown as JobRoleService);
+		const res = createResponse();
+
+		await controller.getById(
+			{ ...createRequest("1"), query: { page: "3" } } as unknown as Request,
+			res,
+		);
+
+		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
+			jobRole: jobRoles[0],
+			backHref: "/jobs/job-roles?page=3",
+		});
+	});
+
+	it("ignores an invalid page query when building the back link", async () => {
+		const getJobRoleById = vi.fn().mockResolvedValue(jobRoles[0]);
+		const controller = new JobRoleController({
+			getJobRoleById,
+		} as unknown as JobRoleService);
+		const res = createResponse();
+
+		await controller.getById(
+			{ ...createRequest("1"), query: { page: "nope" } } as unknown as Request,
+			res,
+		);
+
+		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
+			jobRole: jobRoles[0],
+			backHref: "/jobs/job-roles",
+		});
 	});
 
 	it("renders a 400 without calling the service when the id is not a number", async () => {

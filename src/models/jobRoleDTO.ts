@@ -20,3 +20,11 @@ export interface JobRoleDTO {
 	sharepointUrl: string;
 	numberOfOpenPositions: number;
 }
+
+export interface PaginatedJobRoles {
+	jobRoles: JobRoleDTO[];
+	page: number;
+	pageSize: number;
+	totalCount: number;
+	totalPages: number;
+}

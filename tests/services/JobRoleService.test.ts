@@ -43,13 +43,21 @@ function axiosErrorWithStatus(status: number, data: object = {}) {
 	});
 }
 
+const paginatedResponse = {
+	jobRoles: [apiJobRole],
+	page: 1,
+	pageSize: 10,
+	totalCount: 1,
+	totalPages: 1,
+};
+
 describe("JobRoleService.getAllJobRoles", () => {
 	beforeEach(() => {
 		get.mockReset();
 	});
 
 	it("requests the job roles endpoint", async () => {
-		get.mockResolvedValue({ data: [] });
+		get.mockResolvedValue({ data: paginatedResponse });
 
 		await new JobRoleService().getAllJobRoles("jwt-token");
 
@@ -59,55 +67,72 @@ describe("JobRoleService.getAllJobRoles", () => {
 	});
 
 	it("returns the API response untouched", async () => {
-		get.mockResolvedValue({ data: [apiJobRole] });
+		get.mockResolvedValue({ data: paginatedResponse });
 
 		const result = await new JobRoleService().getAllJobRoles("jwt-token");
 
-		expect(result).toEqual([apiJobRole]);
+		expect(result).toEqual(paginatedResponse);
 	});
 
 	it("returns closed roles as well as open ones", async () => {
 		get.mockResolvedValue({
-			data: [
-				apiJobRole,
-				{
-					...apiJobRole,
-					jobRoleId: 2,
-					status: { statusId: 2, statusName: "Closed" },
-				},
-			],
+			data: {
+				...paginatedResponse,
+				jobRoles: [
+					apiJobRole,
+					{
+						...apiJobRole,
+						jobRoleId: 2,
+						status: { statusId: 2, statusName: "Closed" },
+					},
+				],
+				totalCount: 2,
+			},
 		});
 
 		const result = await new JobRoleService().getAllJobRoles("jwt-token");
 
-		expect(result.map((role) => role.status.statusName)).toEqual([
+		expect(result.jobRoles.map((role) => role.status.statusName)).toEqual([
 			"Open",
 			"Closed",
 		]);
 	});
 
+	it("requests later pages with a page query parameter", async () => {
+		get.mockResolvedValue({
+			data: { ...paginatedResponse, page: 2, totalCount: 11, totalPages: 2 },
+		});
+
+		await new JobRoleService().getAllJobRoles("jwt-token", 2);
+
+		expect(get).toHaveBeenCalledWith("job-roles", {
+			headers: { Authorization: "Bearer jwt-token" },
+			params: { page: 2 },
+		});
+	});
+
 	it("throws a not found message on a 404", async () => {
 		get.mockRejectedValue(axiosErrorWithStatus(404));
 
-		await expect(new JobRoleService().getAllJobRoles("jwt-token")).rejects.toThrow(
-			"No job roles found",
-		);
+		await expect(
+			new JobRoleService().getAllJobRoles("jwt-token"),
+		).rejects.toThrow("No job roles found");
 	});
 
 	it("throws a server error message on a 500", async () => {
 		get.mockRejectedValue(axiosErrorWithStatus(500));
 
-		await expect(new JobRoleService().getAllJobRoles("jwt-token")).rejects.toThrow(
-			"Backend server error",
-		);
+		await expect(
+			new JobRoleService().getAllJobRoles("jwt-token"),
+		).rejects.toThrow("Backend server error");
 	});
 
 	it("rethrows errors it does not recognise", async () => {
 		get.mockRejectedValue(new Error("socket hang up"));
 
-		await expect(new JobRoleService().getAllJobRoles("jwt-token")).rejects.toThrow(
-			"socket hang up",
-		);
+		await expect(
+			new JobRoleService().getAllJobRoles("jwt-token"),
+		).rejects.toThrow("socket hang up");
 	});
 
 	it("rethrows an axios error that never got a response", async () => {
@@ -115,17 +140,17 @@ describe("JobRoleService.getAllJobRoles", () => {
 			new AxiosError("connect ECONNREFUSED", "ECONNREFUSED"),
 		);
 
-		await expect(new JobRoleService().getAllJobRoles("jwt-token")).rejects.toThrow(
-			"connect ECONNREFUSED",
-		);
+		await expect(
+			new JobRoleService().getAllJobRoles("jwt-token"),
+		).rejects.toThrow("connect ECONNREFUSED");
 	});
 
 	it("rethrows an axios error whose status it does not handle", async () => {
 		get.mockRejectedValue(axiosErrorWithStatus(503));
 
-		await expect(new JobRoleService().getAllJobRoles("jwt-token")).rejects.toThrow(
-			"request failed",
-		);
+		await expect(
+			new JobRoleService().getAllJobRoles("jwt-token"),
+		).rejects.toThrow("request failed");
 	});
 
 	it("throws authentication required when the API returns a login redirect hint", async () => {
@@ -136,9 +161,9 @@ describe("JobRoleService.getAllJobRoles", () => {
 			}),
 		);
 
-		await expect(new JobRoleService().getAllJobRoles("jwt-token")).rejects.toThrow(
-			"Authentication required",
-		);
+		await expect(
+			new JobRoleService().getAllJobRoles("jwt-token"),
+		).rejects.toThrow("Authentication required");
 	});
 });
 
@@ -168,40 +193,40 @@ describe("JobRoleService.getJobRoleById", () => {
 	it("throws a not found message on a 404", async () => {
 		get.mockRejectedValue(axiosErrorWithStatus(404));
 
-		await expect(new JobRoleService().getJobRoleById(99, "jwt-token")).rejects.toThrow(
-			"Job role not found",
-		);
+		await expect(
+			new JobRoleService().getJobRoleById(99, "jwt-token"),
+		).rejects.toThrow("Job role not found");
 	});
 
 	it("throws a server error message on a 500", async () => {
 		get.mockRejectedValue(axiosErrorWithStatus(500));
 
-		await expect(new JobRoleService().getJobRoleById(1, "jwt-token")).rejects.toThrow(
-			"Backend server error",
-		);
+		await expect(
+			new JobRoleService().getJobRoleById(1, "jwt-token"),
+		).rejects.toThrow("Backend server error");
 	});
 
 	it("rethrows errors it does not recognise", async () => {
 		get.mockRejectedValue(new Error("socket hang up"));
 
-		await expect(new JobRoleService().getJobRoleById(1, "jwt-token")).rejects.toThrow(
-			"socket hang up",
-		);
+		await expect(
+			new JobRoleService().getJobRoleById(1, "jwt-token"),
+		).rejects.toThrow("socket hang up");
 	});
 
 	it("rethrows an axios error whose status it does not handle", async () => {
 		get.mockRejectedValue(axiosErrorWithStatus(503));
 
-		await expect(new JobRoleService().getJobRoleById(1, "jwt-token")).rejects.toThrow(
-			"request failed",
-		);
+		await expect(
+			new JobRoleService().getJobRoleById(1, "jwt-token"),
+		).rejects.toThrow("request failed");
 	});
 
 	it("throws authentication required when detail API returns 401", async () => {
 		get.mockRejectedValue(axiosErrorWithStatus(401));
 
-		await expect(new JobRoleService().getJobRoleById(1, "jwt-token")).rejects.toThrow(
-			"Authentication required",
-		);
+		await expect(
+			new JobRoleService().getJobRoleById(1, "jwt-token"),
+		).rejects.toThrow("Authentication required");
 	});
 });

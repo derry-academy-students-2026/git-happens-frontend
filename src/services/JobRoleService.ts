@@ -1,7 +1,7 @@
 import axios from "axios";
 import apiClient from "../config/apiClient.js";
 import Logger from "../lib/logger.js";
-import type { JobRoleDTO } from "../models/jobRoleDTO.js";
+import type { JobRoleDTO, PaginatedJobRoles } from "../models/jobRoleDTO.js";
 
 type UnauthorizedResponse = {
 	message?: string;
@@ -24,26 +24,33 @@ export class JobRoleService {
 		const status = error.response?.status;
 		const body = error.response?.data as UnauthorizedResponse | undefined;
 		if (status === 401 || body?.redirectTo === "/login") {
-			Logger.warn("Backend reported authentication required for job role API call");
+			Logger.warn(
+				"Backend reported authentication required for job role API call",
+			);
 			throw new Error("Authentication required");
 		}
 	}
 
 	/**
-	 * Retrieves every job role from the backend API.
+	 * Retrieves one page of job roles from the backend API.
 	 *
+	 * @param token - JWT used to authenticate the API request.
+	 * @param page - One-based page number; page 1 uses the endpoint's plain URL.
 	 * @returns The job roles exactly as the API returns them.
 	 * @throws {Error} "No job roles found" when the API responds 404.
 	 * @throws {Error} "Backend server error" when the API responds 500.
 	 * @throws {Error} The original error for any other failure, such as a timeout.
 	 */
-	async getAllJobRoles(token: string): Promise<JobRoleDTO[]> {
+	async getAllJobRoles(token: string, page = 1): Promise<PaginatedJobRoles> {
 		try {
-			Logger.debug("Requesting job roles from the API with bearer token");
-			const response = await apiClient.get<JobRoleDTO[]>("job-roles", {
+			Logger.debug(`Requesting job roles page ${page} from the API`);
+			const response = await apiClient.get<PaginatedJobRoles>("job-roles", {
 				headers: { Authorization: `Bearer ${token}` },
+				...(page > 1 ? { params: { page } } : {}),
 			});
-			Logger.info(`API returned ${response.data.length} job roles`);
+			Logger.info(
+				`API returned page ${response.data.page} with ${response.data.jobRoles.length} job roles`,
+			);
 			return response.data;
 		} catch (error) {
 			this.throwIfUnauthorized(error);
