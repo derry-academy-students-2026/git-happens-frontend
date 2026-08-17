@@ -144,7 +144,7 @@
 				const errorToast = document.getElementById(`${inputId}Error`);
 				if (errorToast) {
 					errorToast.textContent = message;
-					errorToast.style.display = 'block';
+					errorToast.classList.add('auth-form__error-toast--visible');
 					input?.classList.add('auth-form__input--invalid');
 				}
 			}
@@ -155,7 +155,7 @@
 				const errorToast = document.getElementById(`${inputId}Error`);
 				if (errorToast) {
 					errorToast.textContent = '';
-					errorToast.style.display = 'none';
+					errorToast.classList.remove('auth-form__error-toast--visible');
 					input?.classList.remove('auth-form__input--invalid');
 				}
 			}
@@ -369,7 +369,7 @@
 				if (hasErrors) {
 					e.preventDefault();
 					// Scroll to first error
-					const firstErrorToast = document.querySelector('.auth-form__error-toast[style*="display: block"]');
+					const firstErrorToast = document.querySelector('.auth-form__error-toast--visible');
 					firstErrorToast?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 				}
 			});
