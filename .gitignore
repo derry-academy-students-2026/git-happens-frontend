@@ -43,3 +43,10 @@ kainos-brand-enforcer/
 .windsurf/skills/
 skills-lock.json
 .github/copilot-instructions.md
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

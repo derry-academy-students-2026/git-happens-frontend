@@ -45,9 +45,62 @@ Compiles `src/` to `dist/` using `tsc -p tsconfig.json`.
 | `npm test` | Run the Vitest suite once. |
 | `npm run test:watch` | Run Vitest in watch mode. |
 | `npm run test:coverage` | Run the suite and write a coverage report to `coverage/`. |
+| `npm run test:e2e` | Run the Playwright end-to-end suite. |
+| `npm run test:e2e:ui` | Open Playwright's interactive test runner. |
+| `npm run test:e2e:report` | Open the most recent Playwright HTML report. |
+| `npm run test:e2e:staging` | Run against the configured staging environment. |
+| `npm run test:e2e:production` | Run against the configured production environment. |
 
 Tests live in `tests/`. Open `coverage/index.html` in a browser to view the
 coverage report.
+
+### End-to-end tests
+
+Playwright uses the following structure:
+
+```text
+tests/e2e/
+	api/             Direct HTTP clients and API specs
+	configuration/   Environment selection and URLs
+	fixtures/        Shared Playwright fixtures
+	pages/           Reusable page objects and accessible locators
+	ui/              Browser user-journey specs
+	global-setup.ts  Run-wide readiness checks
+	global-teardown.ts
+```
+
+Playwright starts the local application automatically, so run `npm run test:e2e`
+without starting another server first. When a local server is already running on
+port 3000, the configuration reuses it.
+
+Write browser tests around observable user behaviour. Prefer accessible locators
+such as `getByRole` and `getByLabel`; avoid CSS classes and implementation
+details because they make tests brittle. Keep one user outcome per test. Specs
+receive reusable dependencies from `fixtures/test.ts`, rather than creating page
+objects or API clients directly. Put navigation and repeated page actions in a
+page object; keep assertions in the spec unless an assertion is a reusable page
+state check.
+
+### Environments
+
+The default target is local. `TEST_ENV` selects `local`, `staging`, or
+`production`; each environment reads an optional `.env.e2e.<environment>` file.
+Copy the matching committed `.example` file to create your local configuration.
+Real environment files remain ignored by Git, and CI can supply
+`PLAYWRIGHT_BASE_URL` directly as an environment variable.
+
+```bash
+cp .env.e2e.staging.example .env.e2e.staging
+npm run test:e2e:staging
+```
+
+Global setup verifies `/health` before the suite starts. Add shared data creation
+there only when every test needs it, and remove that data in global teardown.
+Test-specific setup and cleanup belong in the relevant fixture so tests stay
+isolated.
+
+On a failure, Playwright keeps a screenshot and video, and records a trace on a
+retry. Open the HTML report with `npm run test:e2e:report` to inspect them.
 
 ## Lint & Format
 
