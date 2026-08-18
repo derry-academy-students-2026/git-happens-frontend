@@ -5,6 +5,7 @@ export class LoginPage extends BasePage {
 	public readonly emailInput: Locator;
 	public readonly passwordInput: Locator;
 	public readonly submitButton: Locator;
+	public readonly errorMessage: Locator;
 
 	/**
 	 * Creates a page object for login interactions.
@@ -16,6 +17,7 @@ export class LoginPage extends BasePage {
 		this.emailInput = page.getByLabel("Email");
 		this.passwordInput = page.getByLabel("Password");
 		this.submitButton = page.getByRole("button", { name: "Login" });
+		this.errorMessage = page.locator("text=Invalid email or password");
 	}
 
 	/**
