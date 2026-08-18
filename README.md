@@ -49,6 +49,38 @@ Compiles `src/` to `dist/` using `tsc -p tsconfig.json`.
 Tests live in `tests/`. Open `coverage/index.html` in a browser to view the
 coverage report.
 
+## End-to-End Tests
+
+Playwright tests live in `e2e/` and start the frontend automatically on the
+test-only port from `.env.test`.
+
+| Command | Description |
+| --- | --- |
+| `npm run test:e2e` | Run the Chromium end-to-end and frontend API smoke tests. |
+| `npm run test:e2e:ui` | Open Playwright's interactive test runner. |
+| `npm run test:e2e:report` | Open the latest HTML report. |
+
+Install the browser once before the first run:
+
+```bash
+npx playwright install chromium
+```
+
+The framework is structured by responsibility:
+
+- `e2e/pages/` contains page objects and accessible selectors.
+- `e2e/fixtures/` creates and disposes isolated browser contexts and API clients
+	for each test. `authenticatedPage` uses a local test cookie, so a test can
+	exercise signed-in UI without submitting real credentials.
+- `e2e/setup/` contains global setup and teardown, which run once for the whole
+	suite. Per-test reset belongs in fixtures, not global hooks.
+- `e2e/specs/` contains user journeys and HTTP checks.
+
+The frontend does not own a database connection. Browser tests cover user
+behaviour, while frontend API/service tests use mocked API responses. Real
+database retrieval should be tested in the backend repository against its test
+environment.
+
 ## Lint & Format
 
 Linting and formatting are handled by [Biome](https://biomejs.dev/).

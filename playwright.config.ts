@@ -1,52 +1,62 @@
-import { defineConfig, devices } from '@playwright/test';
+import { config as loadEnvironment } from "dotenv";
+import { env } from "node:process";
+import { defineConfig, devices } from "@playwright/test";
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Load isolated settings before Playwright starts the test server.
+loadEnvironment({ path: ".env.test", quiet: true });
+
+// Allow CI to override the local test server address when needed.
+const baseURL = env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
+const isCI = env.CI === "true";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
+  testMatch: "**/*.spec.ts",
+  // Suite-wide hooks create and remove only run-level resources.
+  globalSetup: "./e2e/setup/global-setup.ts",
+  globalTeardown: "./e2e/setup/global-teardown.ts",
+  // Keep Playwright artifacts out of the source directories.
+  outputDir: "test-results",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  forbidOnly: isCI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: isCI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: isCI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    baseURL,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
+    // Retain diagnostics only when a test needs investigation.
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
 
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
 
     {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
     },
 
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
     },
 
     /* Test against mobile viewports. */
@@ -70,10 +80,10 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Run an isolated frontend server before the browser tests. */
+  webServer: {
+    command: "npm start",
+    url: `${baseURL}/health`,
+    reuseExistingServer: !isCI,
+  },
 });
