@@ -31,11 +31,9 @@ export default defineConfig({
 			use: { ...devices["Desktop Safari"] },
 		},
 	],
-	webServer: environment.isLocal
-		? {
-				command: "npm run start",
-				url: environment.baseUrl,
-				reuseExistingServer: !process.env.CI,
-			}
-		: undefined,
+	webServer: {
+		command: "npm run start",
+		url: environment.baseUrl,
+		reuseExistingServer: !process.env.CI,
+	},
 });

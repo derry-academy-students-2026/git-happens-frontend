@@ -48,8 +48,6 @@ Compiles `src/` to `dist/` using `tsc -p tsconfig.json`.
 | `npm run test:e2e` | Run the Playwright E2E suite. |
 | `npm run test:e2e:ui` | Open Playwright's interactive test runner. |
 | `npm run test:e2e:report` | Open the latest Playwright HTML report. |
-| `npm run test:e2e:staging` | Run E2E tests against staging. |
-| `npm run test:e2e:production` | Run E2E tests against production. |
 
 Tests live in `tests/`. Open `coverage/index.html` in a browser to view the
 coverage report.
@@ -62,7 +60,7 @@ that directory so each runner executes only its own tests.
 ```text
 tests/e2e/
 	api/             HTTP clients and API specs
-	configuration/   Environment selection and target URLs
+	configuration/   Shared E2E configuration
 	fixtures/        Shared Playwright fixtures
 	pages/           Reusable page objects and locators
 	ui/              Browser user-journey specs
@@ -76,25 +74,12 @@ consistent. Use accessible locators such as `getByRole` and `getByLabel`, and
 keep assertions in the spec unless a page state check is reused by several
 tests.
 
-The local suite starts the application automatically and reuses a server already
-running on port 3000. Global setup checks `/health` before the suite begins;
-global teardown is the place to clean up any future shared test data.
-
-### Environments
-
-The default target is local. Set `TEST_ENV` to `local`, `staging`, or
-`production`. Remote environments require `PLAYWRIGHT_BASE_URL`; copy the
-matching example file before supplying a local URL configuration.
-
-```bash
-cp .env.e2e.staging.example .env.e2e.staging
-npm run test:e2e:staging
-```
-
-The real `.env.e2e.*` files are ignored by Git. CI should provide
-`PLAYWRIGHT_BASE_URL` as an environment variable. Playwright records a trace on
-the first retry and retains screenshots and video when a test fails; inspect
-these artifacts with `npm run test:e2e:report`.
+The suite targets `http://localhost:3000`, starts the application automatically,
+and reuses a server already running on that port. Global setup checks `/health`
+before the suite begins; global teardown is the place to clean up any future
+shared test data. Playwright records a trace on the first retry and retains
+screenshots and video when a test fails; inspect these artifacts with
+`npm run test:e2e:report`.
 
 ## Lint & Format
 
