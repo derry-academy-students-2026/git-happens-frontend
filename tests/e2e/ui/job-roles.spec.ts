@@ -37,4 +37,17 @@ test.describe("Job role browsing", () => {
 		await expect(page).toHaveURL("/jobs/job-roles");
 		await expect(authenticatedJobRoleListPage.heading).toBeVisible();
 	});
+
+	test("displays error page when accessing a non-existent job role", async ({
+		authenticatedJobRoleListPage,
+		errorPage,
+		page,
+	}) => {
+		await authenticatedJobRoleListPage.navigate();
+		await page.goto("/jobs/job-roles/99999");
+
+		await expect(page).toHaveURL("/jobs/job-roles/99999");
+		await expect(errorPage.heading).toBeVisible();
+		await expect(errorPage.errorMessage).toBeVisible();
+	});
 });

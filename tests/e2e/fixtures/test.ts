@@ -1,5 +1,6 @@
 import { test as base, expect } from "@playwright/test";
 import { HealthApiClient } from "../api/health.api-client.js";
+import { ErrorPage } from "../pages/error.page.js";
 import { HomePage } from "../pages/home.page.js";
 import { JobRoleDetailPage } from "../pages/job-role-detail.page.js";
 import { JobRoleListPage } from "../pages/job-role-list.page.js";
@@ -7,6 +8,7 @@ import { LoginPage } from "../pages/login.page.js";
 import { RegisterPage } from "../pages/register.page.js";
 
 interface ApplicationFixtures {
+	errorPage: ErrorPage;
 	homePage: HomePage;
 	jobRoleDetailPage: JobRoleDetailPage;
 	jobRoleListPage: JobRoleListPage;
@@ -17,6 +19,9 @@ interface ApplicationFixtures {
 }
 
 export const test = base.extend<ApplicationFixtures>({
+	errorPage: async ({ page }, use) => {
+		await use(new ErrorPage(page));
+	},
 	homePage: async ({ page }, use) => {
 		await use(new HomePage(page));
 	},
