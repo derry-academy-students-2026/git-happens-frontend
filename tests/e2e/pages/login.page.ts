@@ -28,6 +28,35 @@ export class LoginPage extends BasePage {
 	}
 
 	/**
+	 * Enters an email address into the login form.
+	 *
+	 * @param email - Email address to enter.
+	 * @returns A promise that resolves after the email is entered.
+	 */
+	public async enterEmail(email: string): Promise<void> {
+		await this.emailInput.fill(email);
+	}
+
+	/**
+	 * Enters a password into the login form.
+	 *
+	 * @param password - Password to enter.
+	 * @returns A promise that resolves after the password is entered.
+	 */
+	public async enterPassword(password: string): Promise<void> {
+		await this.passwordInput.fill(password);
+	}
+
+	/**
+	 * Submits the login form.
+	 *
+	 * @returns A promise that resolves after the login button is clicked.
+	 */
+	public async clickLogin(): Promise<void> {
+		await this.submitButton.click();
+	}
+
+	/**
 	 * Submits the login form with supplied credentials.
 	 *
 	 * @param email - Email address to enter.
@@ -35,8 +64,8 @@ export class LoginPage extends BasePage {
 	 * @returns A promise that resolves after the form is submitted.
 	 */
 	public async signIn(email: string, password: string): Promise<void> {
-		await this.emailInput.fill(email);
-		await this.passwordInput.fill(password);
-		await this.submitButton.click();
+		await this.enterEmail(email);
+		await this.enterPassword(password);
+		await this.clickLogin();
 	}
 }
