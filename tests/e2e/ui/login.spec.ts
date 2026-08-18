@@ -1,15 +1,12 @@
 import { expect, test } from "../fixtures/test.js";
 
 test.describe("Login page", () => {
-	test("shows the sign-in form", async ({ loginPage, page }) => {
+	test("signs in with valid credentials", async ({ loginPage, page }) => {
 		await loginPage.navigate();
 
-		await expect(page).toHaveTitle("Login | Kainos");
-		await expect(
-			page.getByRole("heading", { name: "Welcome back" }),
-		).toBeVisible();
-		await expect(loginPage.emailInput).toBeVisible();
-		await expect(loginPage.passwordInput).toBeVisible();
-		await expect(loginPage.submitButton).toBeVisible();
+		await loginPage.signIn("cormac@cormac.com", "Password123!");
+
+		await expect(page).toHaveURL("/jobs/job-roles");
+		await expect(page).toHaveTitle("Open job roles | Kainos");
 	});
 });
