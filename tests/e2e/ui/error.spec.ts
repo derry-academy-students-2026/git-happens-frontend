@@ -7,16 +7,20 @@ test.describe("Error page", () => {
 	}) => {
 		await page.goto("/invalid-route");
 
-		await expect(page).toHaveTitle("Something went wrong | Kainos");
+		await expect(page).toHaveTitle("Error");
 		await expect(errorPage.heading).toBeVisible();
 		await expect(errorPage.errorMessage).toBeVisible();
 	});
 
 	test("allows navigation back to job roles from error page", async ({
 		errorPage,
+		loginPage,
 		page,
 	}) => {
-		await page.goto("/invalid-route");
+        await loginPage.navigate();
+
+		await loginPage.signIn("test1@example.com", "password123!");
+		await page.goto("/jobs/job-roles/999999");
 
 		await expect(errorPage.heading).toBeVisible();
 		await errorPage.backToRolesLink.click();
