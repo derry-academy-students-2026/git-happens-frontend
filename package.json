@@ -47,9 +47,6 @@
 		"ci:check": "biome ci .",
 		"lint:fix": "biome lint --write ."
 	},
-	"vitest": {
-		"environment": "node"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/derry-academy-students-2026/git-happens-frontend.git"
