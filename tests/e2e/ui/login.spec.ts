@@ -9,4 +9,13 @@ test.describe("Login page", () => {
 		await expect(page).toHaveURL("/jobs/job-roles");
 		await expect(page).toHaveTitle("Open job roles | Kainos");
 	});
+
+	test("signs in with invalid credentials", async ({ loginPage, page }) => {
+		await loginPage.navigate();
+
+		await loginPage.signIn("test1@example.com", "wrongpassword!");
+
+		await expect(page).toHaveURL("/auth/login");
+		await expect(page).toHaveTitle("Login | Kainos");
+	});
 });
