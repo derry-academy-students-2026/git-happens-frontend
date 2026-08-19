@@ -6,7 +6,7 @@ import { RegisterPage } from "../pages/register.page.js";
 const { Given, When, Then } = createBdd();
 
 Given("I am on the register page", async ({ page }) => {
-	await new RegisterPage(page).navigate();
+    await new RegisterPage(page).navigate();
 });
 
 When(

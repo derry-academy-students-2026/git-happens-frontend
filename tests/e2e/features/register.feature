@@ -20,3 +20,4 @@ Feature: Register
         Given I am on the register page
         When I register with email "candidate@example.com" and password "weakpass" and confirm password "weakpass"
         Then I should see an invalid details message
+
