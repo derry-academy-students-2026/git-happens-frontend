@@ -8,19 +8,15 @@ Feature: Register
         When I sign in with the registered email and password "Password123!"
         Then I should be taken to the job role list
 
-    Scenario Outline: Reject an invalid details
+    Scenario Outline: Reject invalid registration details
         Given I am on the register page
-        When I register with email "<email>" and password "<password>" and confirm password "<confirm-password>"
-        Then I should see an invalid details message
+        When I register with email "<email>" and password "<password>" and confirm password "<confirmPassword>"
+        Then I should see the registration error "<error>"
 
         Examples:
-        |email                |password     |confirm-password|
-        |testexample.com      |Password123! |Password123!    |
-        |candidate@example.com|weakpass     |weakpass        |
-
-    Scenario: Reject a password that does not match
-        Given I am on the register page
-        When I register with email "candidate@example.com" and password "Password123!" and confirm password "Different123!"
-        Then I should see a password confirmation error
+            | email                 | password     | confirmPassword | error                                           |
+            | testexample.com       | Password123! | Password123!    | Email must be a valid email format             |
+            | candidate@example.com | Password123! | Different123!   | Passwords do not match                         |
+            | candidate@example.com | weakpass     | weakpass        | Password must be more than 8 characters long   |
 
 

@@ -11,34 +11,31 @@ Given("I am on the register page", async ({ page }) => {
 });
 
 When(
-    "I register with email {string} and password {string} and confirm password {string}",
-    async (
-        { page, registeredAccount },
-        email: string,
-        password: string,
-        confirmPassword: string,
-    ) => {
-        const registeredEmail = `${randomUUID()}-${email}`;
-        registeredAccount.email = registeredEmail;
-        await new RegisterPage(page).register(
-            registeredEmail,
-            password,
-            confirmPassword,
-        );
-    },
+	"I register with email {string} and password {string} and confirm password {string}",
+	async (
+		{ page, registeredAccount },
+		email: string,
+		password: string,
+		confirmPassword: string,
+	) => {
+		const registeredEmail = `${randomUUID()}-${email}`;
+		registeredAccount.email = registeredEmail;
+		await new RegisterPage(page).register(
+			registeredEmail,
+			password,
+			confirmPassword,
+		);
+	},
 );
 
-Then("I should see an invalid details message", async ({ page }) => {
-    const registerPage = new RegisterPage(page);
-    await expect(page).toHaveURL("/auth/register");
-    await expect(registerPage.errorMessage).toBeVisible();
-});
-
-Then("I should see a password confirmation error", async ({ page }) => {
-    const registerPage = new RegisterPage(page);
-    await expect(page).toHaveURL("/auth/register");
-    await expect(registerPage.errorMessage).toContainText("Passwords do not match");
-});
+Then(
+ 	"I should see the registration error {string}",
+	async ({ page }, expectedError: string) => {
+		const registerPage = new RegisterPage(page);
+		await expect(page).toHaveURL("/auth/register");
+		await expect(registerPage.errorMessage).toContainText(expectedError);
+	},
+);
 
 Then(
 	"I should be returned to the login page after registration",
