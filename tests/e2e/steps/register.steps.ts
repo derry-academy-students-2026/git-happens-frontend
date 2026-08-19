@@ -1,25 +1,35 @@
+import { randomUUID } from "node:crypto";
 import { expect } from "@playwright/test";
 import { createBdd } from "playwright-bdd";
 import { RegisterPage } from "../pages/register.page.js";
-import { randomUUID } from "node:crypto";
 
 const { Given, When, Then } = createBdd();
 
 Given("I am on the register page", async ({ page }) => {
-    await new RegisterPage(page).navigate();
+	await new RegisterPage(page).navigate();
 });
 
 When(
     "I register with email {string} and password {string} and confirm password {string}",
     async ({ page }, email: string, password: string, confirmPassword: string) => {
-        await new RegisterPage(page).register(randomUUID()+ email, password, confirmPassword);
+        await new RegisterPage(page).register(
+            `${randomUUID()}-${email}`,
+            password,
+            confirmPassword,
+        );
     },
 );
 
-Then ("I should see an invalid details message", async ({ page }) => {
+Then("I should see an invalid details message", async ({ page }) => {
     const registerPage = new RegisterPage(page);
     await expect(page).toHaveURL("/auth/register");
     await expect(registerPage.errorMessage).toBeVisible();
+});
+
+Then("I should see a password confirmation error", async ({ page }) => {
+    const registerPage = new RegisterPage(page);
+    await expect(page).toHaveURL("/auth/register");
+    await expect(registerPage.errorMessage).toContainText("Passwords do not match");
 });
 
 Then(
