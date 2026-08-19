@@ -47,4 +47,5 @@ skills-lock.json
 
 test-results/
 playwright-report/
+tests/e2e/.features-gen/
 .playwright-mcp/
