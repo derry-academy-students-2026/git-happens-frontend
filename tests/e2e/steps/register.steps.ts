@@ -1,19 +1,27 @@
 import { randomUUID } from "node:crypto";
 import { expect } from "@playwright/test";
 import { createBdd } from "playwright-bdd";
+import { test } from "../fixtures/bdd.js";
 import { RegisterPage } from "../pages/register.page.js";
 
-const { Given, When, Then } = createBdd();
+const { Given, When, Then } = createBdd(test);
 
 Given("I am on the register page", async ({ page }) => {
-    await new RegisterPage(page).navigate();
+	await new RegisterPage(page).navigate();
 });
 
 When(
     "I register with email {string} and password {string} and confirm password {string}",
-    async ({ page }, email: string, password: string, confirmPassword: string) => {
+    async (
+        { page, registeredAccount },
+        email: string,
+        password: string,
+        confirmPassword: string,
+    ) => {
+        const registeredEmail = `${randomUUID()}-${email}`;
+        registeredAccount.email = registeredEmail;
         await new RegisterPage(page).register(
-            `${randomUUID()}-${email}`,
+            registeredEmail,
             password,
             confirmPassword,
         );

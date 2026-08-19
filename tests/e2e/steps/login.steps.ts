@@ -1,8 +1,9 @@
 import { expect } from "@playwright/test";
 import { createBdd } from "playwright-bdd";
+import { test } from "../fixtures/bdd.js";
 import { LoginPage } from "../pages/login.page.js";
 
-const { Given, When, Then } = createBdd();
+const { Given, When, Then } = createBdd(test);
 
 Given("I am on the login page", async ({ page }) => {
 	await new LoginPage(page).navigate();
@@ -22,6 +23,16 @@ When(
 	"I sign in with email {string} and password {string}",
 	async ({ page }, email: string, password: string) => {
 		await new LoginPage(page).signIn(email, password);
+	},
+);
+
+When(
+	"I sign in with the registered email and password {string}",
+	async ({ page, registeredAccount }, password: string) => {
+		if (!registeredAccount.email) {
+			throw new Error("No registered email is available for this scenario.");
+		}
+		await new LoginPage(page).signIn(registeredAccount.email, password);
 	},
 );
 

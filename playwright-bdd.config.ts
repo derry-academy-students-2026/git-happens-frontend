@@ -6,6 +6,7 @@ const testDir = defineBddConfig({
 	features: "tests/e2e/features/**/*.feature",
 	steps: "tests/e2e/steps/**/*.ts",
 	outputDir: "tests/e2e/.features-gen",
+	importTestFrom: "./tests/e2e/fixtures/bdd.ts",
 });
 
 export default defineConfig({
