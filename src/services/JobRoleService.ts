@@ -1,7 +1,12 @@
 import axios from "axios";
 import apiClient from "../config/apiClient.js";
 import Logger from "../lib/logger.js";
-import type { JobRoleDTO } from "../models/jobRoleDTO.js";
+import type {
+	BandDTO,
+	CapabilityDTO,
+	CreateJobRoleRequestDTO,
+	JobRoleDTO,
+} from "../models/jobRoleDTO.js";
 
 type UnauthorizedResponse = {
 	message?: string;
@@ -91,6 +96,115 @@ export class JobRoleService {
 				Logger.error(
 					`Unexpected error fetching job role ${id}: ${String(error)}`,
 				);
+			}
+			throw error;
+		}
+	}
+
+	/**
+	 * Retrieves every capability, used to populate the add job role form.
+	 *
+	 * @param token - Bearer token for the signed in user.
+	 * @returns The capabilities exactly as the API returns them.
+	 * @throws {Error} "Backend server error" when the API responds 500.
+	 * @throws {Error} The original error for any other failure, such as a timeout.
+	 */
+	async getCapabilities(token: string): Promise<CapabilityDTO[]> {
+		try {
+			Logger.debug("Requesting capabilities from the API with bearer token");
+			const response = await apiClient.get<CapabilityDTO[]>("capabilities", {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			Logger.info(`API returned ${response.data.length} capabilities`);
+			return response.data;
+		} catch (error) {
+			this.throwIfUnauthorized(error);
+			if (axios.isAxiosError(error)) {
+				const status = error.response?.status;
+				Logger.error(
+					`Capabilities request failed with status ${status ?? "none"}: ${error.message}`,
+				);
+				if (status === 500) throw new Error("Backend server error");
+			} else {
+				Logger.error(
+					`Unexpected error fetching capabilities: ${String(error)}`,
+				);
+			}
+			throw error;
+		}
+	}
+
+	/**
+	 * Retrieves every band, used to populate the add job role form.
+	 *
+	 * @param token - Bearer token for the signed in user.
+	 * @returns The bands exactly as the API returns them.
+	 * @throws {Error} "Backend server error" when the API responds 500.
+	 * @throws {Error} The original error for any other failure, such as a timeout.
+	 */
+	async getBands(token: string): Promise<BandDTO[]> {
+		try {
+			Logger.debug("Requesting bands from the API with bearer token");
+			const response = await apiClient.get<BandDTO[]>("bands", {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			Logger.info(`API returned ${response.data.length} bands`);
+			return response.data;
+		} catch (error) {
+			this.throwIfUnauthorized(error);
+			if (axios.isAxiosError(error)) {
+				const status = error.response?.status;
+				Logger.error(
+					`Bands request failed with status ${status ?? "none"}: ${error.message}`,
+				);
+				if (status === 500) throw new Error("Backend server error");
+			} else {
+				Logger.error(`Unexpected error fetching bands: ${String(error)}`);
+			}
+			throw error;
+		}
+	}
+
+	/**
+	 * Creates a job role. The backend restricts this to admin users.
+	 *
+	 * @param request - The job role details to create.
+	 * @param token - Bearer token for the signed in user.
+	 * @returns The created job role, as returned by the API with a 201.
+	 * @throws {Error} "Invalid job role details" when the API responds 400.
+	 * @throws {Error} "Forbidden" when the user is not an admin and the API responds 403.
+	 * @throws {Error} The API's message when a referenced capability or band is missing (404).
+	 * @throws {Error} "Backend server error" when the API responds 500.
+	 * @throws {Error} The original error for any other failure, such as a timeout.
+	 */
+	async createJobRole(
+		request: CreateJobRoleRequestDTO,
+		token: string,
+	): Promise<JobRoleDTO> {
+		try {
+			Logger.debug(`Creating job role "${request.roleName}" via the API`);
+			const response = await apiClient.post<JobRoleDTO>("job-roles", request, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			Logger.info(`API created job role ${response.data.jobRoleId}`);
+			return response.data;
+		} catch (error) {
+			this.throwIfUnauthorized(error);
+			if (axios.isAxiosError(error)) {
+				const status = error.response?.status;
+				Logger.error(
+					`Create job role request failed with status ${status ?? "none"}: ${error.message}`,
+				);
+				if (status === 400) throw new Error("Invalid job role details");
+				if (status === 403) throw new Error("Forbidden");
+				if (status === 404) {
+					// The backend distinguishes "Capability not found" from "Band not found".
+					const body = error.response?.data as { message?: string } | undefined;
+					throw new Error(body?.message ?? "Capability or band not found");
+				}
+				if (status === 500) throw new Error("Backend server error");
+			} else {
+				Logger.error(`Unexpected error creating job role: ${String(error)}`);
 			}
 			throw error;
 		}

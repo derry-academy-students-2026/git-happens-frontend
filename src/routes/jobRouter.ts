@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { JobRoleController } from "../controllers/JobRoleController.js";
 import Logger from "../lib/logger.js";
-import { requireJwt } from "../middleware/auth.js";
+import { requireAdmin, requireJwt } from "../middleware/auth.js";
 import { JobRoleService } from "../services/JobRoleService.js";
 
 const jobRouter = Router();
@@ -28,6 +28,30 @@ jobRouter.get("/", (_req, res) => {
 jobRouter.get("/job-roles", requireJwt, (req, res) => {
 	Logger.debug("GET /jobs/job-roles");
 	controller.getAll(req, res);
+});
+
+/**
+ * Renders the admin form for adding a job role.
+ *
+ * Registered before `/job-roles/:id` so that `new` is not captured as an id.
+ *
+ * @param req - Express request from an authenticated admin.
+ * @param res - Express response used to render the add role form.
+ */
+jobRouter.get("/job-roles/new", requireJwt, requireAdmin, (req, res) => {
+	Logger.debug("GET /jobs/job-roles/new");
+	controller.showCreateForm(req, res);
+});
+
+/**
+ * Creates a job role from the admin form submission.
+ *
+ * @param req - Express request carrying the job role form body.
+ * @param res - Express response used to redirect or re-render the form.
+ */
+jobRouter.post("/job-roles", requireJwt, requireAdmin, (req, res) => {
+	Logger.debug("POST /jobs/job-roles");
+	controller.create(req, res);
 });
 
 /**
