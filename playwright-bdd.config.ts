@@ -4,9 +4,8 @@ import { environment } from "./tests/e2e/configuration/environment.js";
 
 const testDir = defineBddConfig({
 	features: "tests/e2e/features/**/*.feature",
-	steps: "tests/e2e/steps/**/*.ts",
+	steps: ["tests/e2e/steps/**/*.ts", "tests/e2e/fixtures/bdd.ts"],
 	outputDir: "tests/e2e/.features-gen",
-	importTestFrom: "./tests/e2e/fixtures/bdd.ts",
 });
 
 export default defineConfig({

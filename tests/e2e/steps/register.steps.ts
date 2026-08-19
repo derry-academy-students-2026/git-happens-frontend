@@ -29,7 +29,7 @@ When(
 );
 
 Then(
- 	"I should see the registration error {string}",
+	"I should see the registration error {string}",
 	async ({ page }, expectedError: string) => {
 		const registerPage = new RegisterPage(page);
 		await expect(page).toHaveURL("/auth/register");

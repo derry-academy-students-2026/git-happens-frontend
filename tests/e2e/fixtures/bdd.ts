@@ -5,7 +5,7 @@ export type RegisteredAccount = {
 };
 
 export const test = base.extend<{ registeredAccount: RegisteredAccount }>({
-	registeredAccount: async ({}, use) => {
+	registeredAccount: async ({ page: _page }, use) => {
 		await use({});
 	},
 });
