@@ -13,6 +13,42 @@ type UnauthorizedResponse = {
 	redirectTo?: string;
 };
 
+type BackendFieldError = {
+	field: string;
+	message: string;
+};
+
+type CreateJobRoleErrorBody = {
+	message?: string;
+	errors?: BackendFieldError[];
+};
+
+/** Raised when the backend rejects `POST /job-roles` with field-level validation errors. */
+export class JobRoleValidationError extends Error {
+	fieldErrors: Record<string, string>;
+
+	/**
+	 * @param message - The backend's top-level message.
+	 * @param fieldErrors - Field name to combined error message.
+	 */
+	constructor(message: string, fieldErrors: Record<string, string>) {
+		super(message);
+		this.name = "JobRoleValidationError";
+		this.fieldErrors = fieldErrors;
+	}
+}
+
+/** Raised when the backend rejects a request with a 403, carrying its own message. */
+export class ForbiddenError extends Error {
+	/**
+	 * @param backendMessage - The backend's explanation for why the request was refused.
+	 */
+	constructor(public backendMessage: string) {
+		super("Forbidden");
+		this.name = "ForbiddenError";
+	}
+}
+
 /** Fetches job role data from the backend API. */
 export class JobRoleService {
 	/**
@@ -171,8 +207,9 @@ export class JobRoleService {
 	 * @param request - The job role details to create.
 	 * @param token - Bearer token for the signed in user.
 	 * @returns The created job role, as returned by the API with a 201.
-	 * @throws {Error} "Invalid job role details" when the API responds 400.
-	 * @throws {Error} "Forbidden" when the user is not an admin and the API responds 403.
+	 * @throws {JobRoleValidationError} When the API responds 400 with field-level `errors`.
+	 * @throws {Error} "Invalid job role details" when the API responds 400 without field errors.
+	 * @throws {ForbiddenError} When the user is not an admin and the API responds 403.
 	 * @throws {Error} The API's message when a referenced capability or band is missing (404).
 	 * @throws {Error} "Backend server error" when the API responds 500.
 	 * @throws {Error} The original error for any other failure, such as a timeout.
@@ -195,11 +232,20 @@ export class JobRoleService {
 				Logger.error(
 					`Create job role request failed with status ${status ?? "none"}: ${error.message}`,
 				);
-				if (status === 400) throw new Error("Invalid job role details");
-				if (status === 403) throw new Error("Forbidden");
+				const body = error.response?.data as CreateJobRoleErrorBody | undefined;
+				if (status === 400) {
+					const fieldErrors = this.toFieldErrorMap(body?.errors);
+					const message = body?.message ?? "Invalid job role details";
+					if (Object.keys(fieldErrors).length > 0) {
+						throw new JobRoleValidationError(message, fieldErrors);
+					}
+					throw new Error(message);
+				}
+				if (status === 403) {
+					throw new ForbiddenError(body?.message ?? "Forbidden");
+				}
 				if (status === 404) {
 					// The backend distinguishes "Capability not found" from "Band not found".
-					const body = error.response?.data as { message?: string } | undefined;
 					throw new Error(body?.message ?? "Capability or band not found");
 				}
 				if (status === 500) throw new Error("Backend server error");
@@ -208,5 +254,25 @@ export class JobRoleService {
 			}
 			throw error;
 		}
+	}
+
+	/**
+	 * Combines backend field errors into one message per field.
+	 *
+	 * @param errors - Field-level errors from the backend's 400 response, if present.
+	 * @returns Field name to combined error message; empty when there are none.
+	 */
+	private toFieldErrorMap(errors: BackendFieldError[] | undefined): Record<string, string> {
+		if (!errors?.length) {
+			return {};
+		}
+
+		const fieldErrors: Record<string, string> = {};
+		for (const { field, message } of errors) {
+			fieldErrors[field] = fieldErrors[field]
+				? `${fieldErrors[field]} ${message}`
+				: message;
+		}
+		return fieldErrors;
 	}
 }

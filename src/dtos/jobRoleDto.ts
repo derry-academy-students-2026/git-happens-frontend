@@ -28,9 +28,10 @@ export const CreateJobRoleSchema = z.object({
 			"Closing date must be a valid date",
 		)
 		.refine((value) => {
-			const today = new Date();
-			today.setHours(0, 0, 0, 0);
-			return new Date(value) >= today;
+			// Compare UTC date-only strings so a local timezone offset never rejects today's date.
+			const todayIso = new Date().toISOString().slice(0, 10);
+			const valueIso = new Date(value).toISOString().slice(0, 10);
+			return valueIso >= todayIso;
 		}, "Closing date must not be in the past"),
 	description: requiredText("Description"),
 	responsibilities: requiredText("Responsibilities"),

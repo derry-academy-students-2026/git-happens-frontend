@@ -146,6 +146,109 @@ describe("add new job role workflow", () => {
 		expect(post).not.toHaveBeenCalled();
 	});
 
+	it("accepts today's date as the closing date", async () => {
+		post.mockResolvedValue({ data: createdJobRole });
+		const todayIsoDate = new Date().toISOString().slice(0, 10);
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send({ ...validSubmission, closingDate: todayIsoDate });
+
+		expect(response.status).toBe(302);
+		expect(post).toHaveBeenCalled();
+	});
+
+	it("renders a closing date that carries an end-of-day time component as a date only", async () => {
+		get.mockImplementation((url: string) => {
+			if (url === "capabilities") return Promise.resolve({ data: capabilities });
+			if (url === "bands") return Promise.resolve({ data: bands });
+			if (url === "job-roles/9") {
+				return Promise.resolve({
+					data: { ...createdJobRole, closingDate: "2026-10-01T23:59:59.999Z" },
+				});
+			}
+			throw new Error(`Unexpected GET ${url}`);
+		});
+
+		const response = await request(app)
+			.get("/jobs/job-roles/9")
+			.set("Cookie", [`jwt=${adminToken}`]);
+
+		expect(response.status).toBe(200);
+		expect(response.text).toContain("2026-10-01");
+		expect(response.text).not.toContain("23:59:59");
+	});
+
+	it("renders each backend field error against its own input", async () => {
+		post.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 400,
+				data: {
+					message: "Invalid job role details",
+					errors: [{ field: "roleName", message: "Role name must not be empty" }],
+				},
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Role name must not be empty");
+		expect(response.text).toContain('id="roleName-error"');
+	});
+
+	it("renders multiple backend field errors at once, each against its own input", async () => {
+		post.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 400,
+				data: {
+					message: "Invalid job role details",
+					errors: [
+						{ field: "roleName", message: "Role name must not be empty" },
+						{ field: "closingDate", message: "Closing date must be in the future" },
+					],
+				},
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Role name must not be empty");
+		expect(response.text).toContain("Closing date must be in the future");
+	});
+
+	it("falls back to the top-level message when the backend sends no field errors", async () => {
+		post.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 400,
+				data: { message: "Invalid job role details" },
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Invalid job role details");
+	});
+
 	it("shows the backend's message when the capability id does not map to a real capability", async () => {
 		post.mockRejectedValue({
 			isAxiosError: true,
@@ -176,6 +279,27 @@ describe("add new job role workflow", () => {
 
 		expect(response.status).toBe(400);
 		expect(response.text).toContain("Band not found");
+	});
+
+	it("shows the backend's own message when it rejects the request as forbidden", async () => {
+		post.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 403,
+				data: { message: "Users can only access list and information endpoints" },
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(403);
+		expect(response.text).toContain(
+			"Users can only access list and information endpoints",
+		);
 	});
 
 	it("shows a forbidden page when the backend rejects the request as forbidden", async () => {

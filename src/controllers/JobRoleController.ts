@@ -2,7 +2,11 @@ import type { Request, Response } from "express";
 import type { ZodError } from "zod";
 import { CreateJobRoleSchema } from "../dtos/jobRoleDto.js";
 import Logger from "../lib/logger.js";
-import type { JobRoleService } from "../services/JobRoleService.js";
+import {
+	ForbiddenError,
+	JobRoleValidationError,
+	type JobRoleService,
+} from "../services/JobRoleService.js";
 
 /** Fields echoed back to the add job role form when validation fails. */
 const CREATE_FORM_FIELDS = [
@@ -24,6 +28,12 @@ const SAFE_CREATE_ERROR_MESSAGES = new Set([
 	"Capability or band not found",
 	"Backend server error",
 ]);
+
+/** Maps a known error message to the dropdown it relates to, so it renders inline instead of as a banner. */
+const FIELD_ERROR_BY_MESSAGE: Record<string, string> = {
+	"Capability not found": "capabilityId",
+	"Band not found": "bandId",
+};
 
 /** Handles the HTTP layer for job role pages, delegating data access to the service. */
 export class JobRoleController {
@@ -290,18 +300,34 @@ export class JobRoleController {
 				return;
 			}
 
-			if (message === "Forbidden") {
-				res.status(403).render("pages/error.njk", { error: "Forbidden" });
+			if (error instanceof ForbiddenError) {
+				res
+					.status(403)
+					.render("pages/error.njk", { error: error.backendMessage });
 				return;
 			}
 
 			try {
+				if (error instanceof JobRoleValidationError) {
+					await this.renderCreateForm(res, token, {
+						status: 400,
+						formValues: this.toFormValues(body),
+						errors: error.fieldErrors,
+						errorMessage: "Please correct the highlighted fields and try again.",
+					});
+					return;
+				}
+
+				const fieldForMessage = FIELD_ERROR_BY_MESSAGE[message];
 				await this.renderCreateForm(res, token, {
 					status: 400,
 					formValues: this.toFormValues(body),
-					errorMessage: SAFE_CREATE_ERROR_MESSAGES.has(message)
-						? message
-						: "We couldn't create this job role right now. Please try again.",
+					errors: fieldForMessage ? { [fieldForMessage]: message } : {},
+					errorMessage: fieldForMessage
+						? null
+						: SAFE_CREATE_ERROR_MESSAGES.has(message)
+							? message
+							: "We couldn't create this job role right now. Please try again.",
 				});
 			} catch (renderError) {
 				Logger.error(
