@@ -16,6 +16,15 @@ const CREATE_FORM_FIELDS = [
 	"numberOfOpenPositions",
 ] as const;
 
+/** Service failure messages safe to show verbatim; anything else risks leaking backend/network detail. */
+const SAFE_CREATE_ERROR_MESSAGES = new Set([
+	"Invalid job role details",
+	"Capability not found",
+	"Band not found",
+	"Capability or band not found",
+	"Backend server error",
+]);
+
 /** Handles the HTTP layer for job role pages, delegating data access to the service. */
 export class JobRoleController {
 	/**
@@ -42,7 +51,7 @@ export class JobRoleController {
 			}
 
 			const jobRoles = await this.service.getAllJobRoles(token);
-			Logger.debug(`Rendering job role list with ${jobRoles.length} roles`);
+			Logger.debug(`Rendering job role list of ${jobRoles.length} roles`);
 			res.render("pages/job-role-list.njk", { jobRoles });
 		} catch (error) {
 			Logger.error(
@@ -197,6 +206,7 @@ export class JobRoleController {
 		res.status(options.status ?? 200).render("pages/job-role-form.njk", {
 			capabilities,
 			bands,
+			todayIsoDate: new Date().toISOString().slice(0, 10),
 			formValues: options.formValues ?? {},
 			errors: options.errors ?? {},
 			errorMessage: options.errorMessage ?? null,
@@ -289,7 +299,9 @@ export class JobRoleController {
 				await this.renderCreateForm(res, token, {
 					status: 400,
 					formValues: this.toFormValues(body),
-					errorMessage: message,
+					errorMessage: SAFE_CREATE_ERROR_MESSAGES.has(message)
+						? message
+						: "We couldn't create this job role right now. Please try again.",
 				});
 			} catch (renderError) {
 				Logger.error(

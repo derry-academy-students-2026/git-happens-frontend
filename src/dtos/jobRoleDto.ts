@@ -22,13 +22,17 @@ export const CreateJobRoleSchema = z.object({
 	location: requiredText("Location"),
 	capabilityId: positiveInteger("Capability"),
 	bandId: positiveInteger("Band"),
-	closingDate: requiredText("Closing date").refine(
-		(value) => !Number.isNaN(Date.parse(value)),
-		"Closing date must be a valid date",
-	),
+	closingDate: requiredText("Closing date")
+		.refine(
+			(value) => !Number.isNaN(Date.parse(value)),
+			"Closing date must be a valid date",
+		)
+		.refine((value) => {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+			return new Date(value) >= today;
+		}, "Closing date must not be in the past"),
 	description: requiredText("Description"),
 	responsibilities: requiredText("Responsibilities"),
 	numberOfOpenPositions: positiveInteger("Number of open positions"),
 });
-
-export type CreateJobRoleFormDto = z.infer<typeof CreateJobRoleSchema>;

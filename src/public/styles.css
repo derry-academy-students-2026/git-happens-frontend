@@ -24,6 +24,11 @@
 	--wash-green: #eef5ea;
 	--line: #dde1ec;
 
+	/* Error/validation state, shared by auth and job role forms */
+	--error-bg: #fdeceb;
+	--error-border: #f3b4af;
+	--error-text: #8a1f17;
+
 	--font-display:
 		"Foundry Gridnik", "Century Gothic", "URW Gothic", "Avant Garde",
 		"Trebuchet MS", sans-serif;
@@ -96,6 +101,19 @@ img {
 :where(a, button, [tabindex]):focus-visible {
 	outline: 3px solid var(--kainos-bright-blue);
 	outline-offset: 3px;
+}
+
+/* Visually hides text while keeping it available to assistive technology. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 /* ---------- Display type ---------- */
@@ -491,9 +509,9 @@ img {
 	margin: 1.25rem 0 0;
 	padding: 0.85rem 1rem;
 	border-radius: 4px;
-	background: #fdeceb;
-	border: 1px solid #f3b4af;
-	color: #8a1f17;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	color: var(--error-text);
 	font-weight: 600;
 }
 
@@ -622,9 +640,9 @@ img {
 	margin: 1.25rem 0 0;
 	padding: 0.85rem 1rem;
 	border-radius: 4px;
-	background: #fdeceb;
-	border: 1px solid #f3b4af;
-	color: #8a1f17;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	color: var(--error-text);
 	font-weight: 600;
 }
 
@@ -890,9 +908,9 @@ img {
 	margin: 1.25rem 0 0;
 	padding: 0.85rem 1rem;
 	border-radius: 4px;
-	background: #fdeceb;
-	border: 1px solid #f3b4af;
-	color: #8a1f17;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	color: var(--error-text);
 	font-weight: 600;
 }
 
@@ -958,19 +976,19 @@ img {
 .role-form__field--invalid select,
 .role-form__field--invalid textarea {
 	border-width: 2px;
-	border-color: #8a1f17;
+	border-color: var(--error-text);
 }
 
 .role-form__error {
 	display: flex;
 	align-items: center;
 	gap: 0.4rem;
-	color: #8a1f17;
+	color: var(--error-text);
 	font-size: 0.875rem;
 	font-weight: 600;
 }
 
-/* Icon keeps the error state from relying on colour alone. */
+/* Decorative only; the error text carries the meaning via the sr-only "Error: " prefix in the markup. */
 .role-form__error::before {
 	content: "!";
 	display: inline-flex;
@@ -980,7 +998,7 @@ img {
 	width: 1.05rem;
 	height: 1.05rem;
 	border-radius: 50%;
-	background: #8a1f17;
+	background: var(--error-text);
 	color: var(--white);
 	font-size: 0.72rem;
 }

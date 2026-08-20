@@ -134,6 +134,18 @@ describe("add new job role workflow", () => {
 		expect(post).not.toHaveBeenCalled();
 	});
 
+	it("rejects a closing date in the past and does not call the API", async () => {
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send({ ...validSubmission, closingDate: "2020-01-01" });
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Closing date must not be in the past");
+		expect(post).not.toHaveBeenCalled();
+	});
+
 	it("shows the backend's message when the capability id does not map to a real capability", async () => {
 		post.mockRejectedValue({
 			isAxiosError: true,
@@ -166,7 +178,7 @@ describe("add new job role workflow", () => {
 		expect(response.text).toContain("Band not found");
 	});
 
-	it("shows a forbidden page when the backend rejects a non-admin token", async () => {
+	it("shows a forbidden page when the backend rejects the request as forbidden", async () => {
 		post.mockRejectedValue({
 			isAxiosError: true,
 			response: { status: 403, data: {} },
@@ -180,6 +192,22 @@ describe("add new job role workflow", () => {
 
 		expect(response.status).toBe(403);
 		expect(response.text).toContain("Forbidden");
+	});
+
+	it("shows a generic message instead of the raw backend error for an unmapped failure", async () => {
+		post.mockRejectedValue(new Error("connect ECONNREFUSED 127.0.0.1:4000"));
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain(
+			"We couldn&#39;t create this job role right now. Please try again.",
+		);
+		expect(response.text).not.toContain("ECONNREFUSED");
 	});
 
 	it("blocks non-admins from reaching the create form or endpoint without calling the API", async () => {

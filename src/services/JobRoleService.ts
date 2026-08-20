@@ -6,7 +6,7 @@ import type {
 	CapabilityDTO,
 	CreateJobRoleRequestDTO,
 	JobRoleDTO,
-} from "../models/jobRoleDTO.js";
+} from "../models/jobRoleModel.js";
 
 type UnauthorizedResponse = {
 	message?: string;

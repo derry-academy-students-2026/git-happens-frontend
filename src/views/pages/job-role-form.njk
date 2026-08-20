@@ -47,7 +47,7 @@
           /> {% if errors.roleName %}
             <span
               class="role-form__error"
-              id="roleName-error">{{ errors.roleName }}</span>
+              id="roleName-error"><span class="sr-only">Error: </span>{{ errors.roleName }}</span>
           {% endif %}
         </div>
         <div
@@ -64,7 +64,7 @@
           /> {% if errors.location %}
             <span
               class="role-form__error"
-              id="location-error">{{ errors.location }}</span>
+              id="location-error"><span class="sr-only">Error: </span>{{ errors.location }}</span>
           {% endif %}
         </div>
       </div>
@@ -95,7 +95,7 @@
           {% if errors.capabilityId %}
             <span
               class="role-form__error"
-              id="capabilityId-error">{{ errors.capabilityId }}</span>
+              id="capabilityId-error"><span class="sr-only">Error: </span>{{ errors.capabilityId }}</span>
           {% endif %}
         </div>
         <div
@@ -122,7 +122,7 @@
           {% if errors.bandId %}
             <span
               class="role-form__error"
-              id="bandId-error">{{ errors.bandId }}</span>
+              id="bandId-error"><span class="sr-only">Error: </span>{{ errors.bandId }}</span>
           {% endif %}
         </div>
       </div>
@@ -134,6 +134,7 @@
             id="closingDate"
             name="closingDate"
             value="{{ formValues.closingDate }}"
+            min="{{ todayIsoDate }}"
             {% if errors.closingDate %}
               aria-invalid="true"
               aria-describedby="closingDate-error"
@@ -141,7 +142,7 @@
           /> {% if errors.closingDate %}
             <span
               class="role-form__error"
-              id="closingDate-error">{{ errors.closingDate }}</span>
+              id="closingDate-error"><span class="sr-only">Error: </span>{{ errors.closingDate }}</span>
           {% endif %}
         </div>
         <div
@@ -161,7 +162,7 @@
             role.</small> {% if errors.numberOfOpenPositions %}
             <span
               class="role-form__error"
-              id="numberOfOpenPositions-error">{{
+              id="numberOfOpenPositions-error"><span class="sr-only">Error: </span>{{
               errors.numberOfOpenPositions
             }}</span>
           {% endif %}
@@ -181,7 +182,7 @@
         %}
           <span
             class="role-form__error"
-            id="description-error">{{ errors.description }}</span>
+            id="description-error"><span class="sr-only">Error: </span>{{ errors.description }}</span>
         {% endif %}
       </div>
       <div
@@ -198,7 +199,7 @@
         %}
           <span
             class="role-form__error"
-            id="responsibilities-error">{{ errors.responsibilities }}</span>
+            id="responsibilities-error"><span class="sr-only">Error: </span>{{ errors.responsibilities }}</span>
         {% endif %}
       </div>
       <div class="role-form__actions">
