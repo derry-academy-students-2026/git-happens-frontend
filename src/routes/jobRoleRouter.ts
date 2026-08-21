@@ -2,9 +2,10 @@ import { Router } from "express";
 import { JobRoleController } from "../controllers/JobRoleController.js";
 import Logger from "../lib/logger.js";
 import { requireAdmin, requireJwt } from "../middleware/auth.js";
+import { validateCreateJobRole } from "../middleware/validateJobRole.js";
 import { JobRoleService } from "../services/JobRoleService.js";
 
-const jobRouter = Router();
+const jobRoleRouter = Router();
 const service = new JobRoleService();
 const controller = new JobRoleController(service);
 
@@ -14,7 +15,7 @@ const controller = new JobRoleController(service);
  * @param _req - Express request for the jobs home page.
  * @param res - Express response used to render the index template.
  */
-jobRouter.get("/", (_req, res) => {
+jobRoleRouter.get("/", (_req, res) => {
 	Logger.debug("GET /jobs");
 	res.render("pages/index.njk");
 });
@@ -25,7 +26,7 @@ jobRouter.get("/", (_req, res) => {
  * @param req - Express request for job role listing.
  * @param res - Express response used to render the list page.
  */
-jobRouter.get("/job-roles", requireJwt, (req, res) => {
+jobRoleRouter.get("/job-roles", requireJwt, (req, res) => {
 	Logger.debug("GET /jobs/job-roles");
 	controller.getAll(req, res);
 });
@@ -38,7 +39,7 @@ jobRouter.get("/job-roles", requireJwt, (req, res) => {
  * @param req - Express request from an authenticated admin.
  * @param res - Express response used to render the add role form.
  */
-jobRouter.get("/job-roles/new", requireJwt, requireAdmin, (req, res) => {
+jobRoleRouter.get("/job-roles/new", requireJwt, requireAdmin, (req, res) => {
 	Logger.debug("GET /jobs/job-roles/new");
 	controller.showCreateForm(req, res);
 });
@@ -46,13 +47,22 @@ jobRouter.get("/job-roles/new", requireJwt, requireAdmin, (req, res) => {
 /**
  * Creates a job role from the admin form submission.
  *
+ * Schema validation runs in `validateCreateJobRole` first, so the controller
+ * only ever sees an already-parsed body or a validation error.
+ *
  * @param req - Express request carrying the job role form body.
  * @param res - Express response used to redirect or re-render the form.
  */
-jobRouter.post("/job-roles", requireJwt, requireAdmin, (req, res) => {
-	Logger.debug("POST /jobs/job-roles");
-	controller.create(req, res);
-});
+jobRoleRouter.post(
+	"/job-roles",
+	requireJwt,
+	requireAdmin,
+	validateCreateJobRole,
+	(req, res) => {
+		Logger.debug("POST /jobs/job-roles");
+		controller.create(req, res);
+	},
+);
 
 /**
  * Renders the information page for a single job role.
@@ -60,9 +70,9 @@ jobRouter.post("/job-roles", requireJwt, requireAdmin, (req, res) => {
  * @param req - Express request that includes a job role id route param.
  * @param res - Express response used to render the detail page.
  */
-jobRouter.get("/job-roles/:id", requireJwt, (req, res) => {
+jobRoleRouter.get("/job-roles/:id", requireJwt, (req, res) => {
 	Logger.debug(`GET /jobs/job-roles/${req.params.id}`);
 	controller.getById(req, res);
 });
 
-export default jobRouter;
+export default jobRoleRouter;

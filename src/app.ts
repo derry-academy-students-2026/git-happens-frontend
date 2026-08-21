@@ -10,7 +10,7 @@ import {
 	getJwtFromCookie,
 } from "./middleware/auth.js";
 import authRouter from "./routes/authRouter.js";
-import jobRouter from "./routes/jobRouter.js";
+import jobRoleRouter from "./routes/jobRoleRouter.js";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -81,7 +81,7 @@ app.get("/health", (_req, res) => {
 	res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-app.use("/jobs", jobRouter);
+app.use("/jobs", jobRoleRouter);
 app.use("/auth", authRouter);
 
 Logger.debug(

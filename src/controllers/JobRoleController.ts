@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import type { ZodError } from "zod";
-import { CreateJobRoleSchema } from "../dtos/jobRoleDto.js";
 import { ApiValidationError, AppError } from "../errors/customErrors.js";
 import Logger from "../lib/logger.js";
 import type { JobRoleService } from "../services/JobRoleService.js";
@@ -315,21 +314,23 @@ export class JobRoleController {
 		}
 
 		const body = (req.body ?? {}) as Record<string, unknown>;
-		const validation = CreateJobRoleSchema.safeParse(body);
 
 		try {
-			if (!validation.success) {
+			// Schema validation already ran in the validateCreateJobRole middleware.
+			if (!req.jobRoleInput) {
 				Logger.warn("Rejected job role creation with invalid form details");
 				await this.renderCreateForm(res, token, {
 					status: 400,
 					formValues: this.toFormValues(body),
-					errors: this.toFieldErrors(validation.error),
+					errors: req.jobRoleValidationError
+						? this.toFieldErrors(req.jobRoleValidationError)
+						: {},
 					errorMessage: "Please correct the highlighted fields and try again.",
 				});
 				return;
 			}
 
-			const jobRole = await this.service.createJobRole(validation.data, token);
+			const jobRole = await this.service.createJobRole(req.jobRoleInput, token);
 			Logger.info(`Created job role ${jobRole.jobRoleId}`);
 			res.redirect(`/jobs/job-roles/${jobRole.jobRoleId}`);
 		} catch (error) {
