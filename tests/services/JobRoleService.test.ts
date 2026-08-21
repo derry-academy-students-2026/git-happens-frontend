@@ -8,8 +8,9 @@ vi.mock("../../src/config/apiClient.js", () => ({
 	apiClient: { get, post },
 }));
 
-const { JobRoleService, JobRoleValidationError, ForbiddenError } = await import(
-	"../../src/services/JobRoleService.js"
+const { JobRoleService } = await import("../../src/services/JobRoleService.js");
+const { ApiValidationError, AppError } = await import(
+	"../../src/errors/customErrors.js"
 );
 
 const apiJobRole = {
@@ -234,7 +235,7 @@ describe("JobRoleService.createJobRole", () => {
 		});
 	});
 
-	it("throws a JobRoleValidationError with field errors when the backend sends them", async () => {
+	it("throws an ApiValidationError with field errors when the backend sends them", async () => {
 		post.mockRejectedValue(
 			axiosErrorWithStatus(400, {
 				message: "Invalid job role details",
@@ -252,14 +253,15 @@ describe("JobRoleService.createJobRole", () => {
 			.createJobRole(request, "jwt-token")
 			.catch((caught) => caught);
 
-		expect(error).toBeInstanceOf(JobRoleValidationError);
-		expect(error.fieldErrors).toEqual({
-			roleName: "Role name must not be empty",
-			closingDate: "Closing date must be in the future",
-		});
+		expect(error).toBeInstanceOf(ApiValidationError);
+		expect(error.statusCode).toBe(400);
+		expect(error.fieldErrors).toEqual([
+			{ field: "roleName", message: "Role name must not be empty" },
+			{ field: "closingDate", message: "Closing date must be in the future" },
+		]);
 	});
 
-	it("combines multiple messages for the same field", async () => {
+	it("preserves multiple field errors sent for the same field", async () => {
 		post.mockRejectedValue(
 			axiosErrorWithStatus(400, {
 				message: "Invalid job role details",
@@ -277,22 +279,27 @@ describe("JobRoleService.createJobRole", () => {
 			.createJobRole(request, "jwt-token")
 			.catch((caught) => caught);
 
-		expect(error.fieldErrors.roleName).toBe(
-			"Role name must not be empty Role name must be under 100 characters",
-		);
+		expect(error.fieldErrors).toEqual([
+			{ field: "roleName", message: "Role name must not be empty" },
+			{ field: "roleName", message: "Role name must be under 100 characters" },
+		]);
 	});
 
-	it("falls back to a plain Error with the message when no field errors are sent", async () => {
+	it("falls back to an ApiValidationError with no field errors when none are sent", async () => {
 		post.mockRejectedValue(
 			axiosErrorWithStatus(400, { message: "Invalid job role details" }),
 		);
 
-		await expect(
-			new JobRoleService().createJobRole(request, "jwt-token"),
-		).rejects.toThrow("Invalid job role details");
+		const error = await new JobRoleService()
+			.createJobRole(request, "jwt-token")
+			.catch((caught) => caught);
+
+		expect(error).toBeInstanceOf(ApiValidationError);
+		expect(error.fieldErrors).toEqual([]);
+		expect(error.message).toBe("Invalid job role details");
 	});
 
-	it("throws a ForbiddenError carrying the backend's own message on a 403", async () => {
+	it("throws an AppError carrying the backend's own message on a 403", async () => {
 		post.mockRejectedValue(
 			axiosErrorWithStatus(403, {
 				message: "Users can only access list and information endpoints",
@@ -303,21 +310,23 @@ describe("JobRoleService.createJobRole", () => {
 			.createJobRole(request, "jwt-token")
 			.catch((caught) => caught);
 
-		expect(error).toBeInstanceOf(ForbiddenError);
-		expect(error.backendMessage).toBe(
+		expect(error).toBeInstanceOf(AppError);
+		expect(error.statusCode).toBe(403);
+		expect(error.message).toBe(
 			"Users can only access list and information endpoints",
 		);
 	});
 
-	it("throws a ForbiddenError with a default message when the backend sends none", async () => {
+	it("throws an AppError with a default message when the backend sends none on a 403", async () => {
 		post.mockRejectedValue(axiosErrorWithStatus(403));
 
 		const error = await new JobRoleService()
 			.createJobRole(request, "jwt-token")
 			.catch((caught) => caught);
 
-		expect(error).toBeInstanceOf(ForbiddenError);
-		expect(error.backendMessage).toBe("Forbidden");
+		expect(error).toBeInstanceOf(AppError);
+		expect(error.statusCode).toBe(403);
+		expect(error.message).toBe("Forbidden");
 	});
 
 	it("throws the backend's message when a referenced capability or band is missing", async () => {
@@ -330,11 +339,30 @@ describe("JobRoleService.createJobRole", () => {
 		).rejects.toThrow("Band not found");
 	});
 
-	it("throws a server error message on a 500", async () => {
-		post.mockRejectedValue(axiosErrorWithStatus(500));
+	it("throws a server error message on a 500, never the backend's own message", async () => {
+		post.mockRejectedValue(
+			axiosErrorWithStatus(500, { message: "NullPointerException at row 42" }),
+		);
 
-		await expect(
-			new JobRoleService().createJobRole(request, "jwt-token"),
-		).rejects.toThrow("Backend server error");
+		const error = await new JobRoleService()
+			.createJobRole(request, "jwt-token")
+			.catch((caught) => caught);
+
+		expect(error.message).toBe("Backend server error");
+		expect(error.message).not.toContain("NullPointerException");
+	});
+
+	it("throws a generic retryable message on a network failure, not the raw error", async () => {
+		post.mockRejectedValue(new Error("connect ECONNREFUSED 127.0.0.1:4000"));
+
+		const error = await new JobRoleService()
+			.createJobRole(request, "jwt-token")
+			.catch((caught) => caught);
+
+		expect(error).toBeInstanceOf(AppError);
+		expect(error.message).toBe(
+			"We couldn't create this job role right now. Please try again.",
+		);
+		expect(error.message).not.toContain("ECONNREFUSED");
 	});
 });

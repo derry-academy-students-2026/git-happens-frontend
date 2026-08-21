@@ -238,6 +238,60 @@ describe("add new job role workflow", () => {
 		expect(response.text).toContain("Closing date must be in the future");
 	});
 
+	it("combines multiple backend messages for the same field against one input", async () => {
+		post.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 400,
+				data: {
+					message: "Invalid job role details",
+					errors: [
+						{ field: "roleName", message: "Role name must not be empty" },
+						{
+							field: "roleName",
+							message: "Role name must be under 100 characters",
+						},
+					],
+				},
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain(
+			"Role name must not be empty Role name must be under 100 characters",
+		);
+	});
+
+	it("shows a field error for an unrecognised field name in the general error area instead of dropping it", async () => {
+		post.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 400,
+				data: {
+					message: "Invalid job role details",
+					errors: [
+						{ field: "sharepointUrl", message: "Sharepoint URL is invalid" },
+					],
+				},
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Sharepoint URL is invalid");
+	});
+
 	it("falls back to the top-level message when the backend sends no field errors", async () => {
 		post.mockRejectedValue({
 			isAxiosError: true,

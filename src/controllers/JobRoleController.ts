@@ -1,12 +1,9 @@
 import type { Request, Response } from "express";
 import type { ZodError } from "zod";
 import { CreateJobRoleSchema } from "../dtos/jobRoleDto.js";
+import { ApiValidationError, AppError } from "../errors/customErrors.js";
 import Logger from "../lib/logger.js";
-import {
-	ForbiddenError,
-	type JobRoleService,
-	JobRoleValidationError,
-} from "../services/JobRoleService.js";
+import type { JobRoleService } from "../services/JobRoleService.js";
 
 /** Fields echoed back to the add job role form when validation fails. */
 const CREATE_FORM_FIELDS = [
@@ -19,15 +16,6 @@ const CREATE_FORM_FIELDS = [
 	"responsibilities",
 	"numberOfOpenPositions",
 ] as const;
-
-/** Service failure messages safe to show verbatim; anything else risks leaking backend/network detail. */
-const SAFE_CREATE_ERROR_MESSAGES = new Set([
-	"Invalid job role details",
-	"Capability not found",
-	"Band not found",
-	"Capability or band not found",
-	"Backend server error",
-]);
 
 /** Maps a known error message to the dropdown it relates to, so it renders inline instead of as a banner. */
 const FIELD_ERROR_BY_MESSAGE: Record<string, string> = {
@@ -191,6 +179,43 @@ export class JobRoleController {
 	}
 
 	/**
+	 * Maps a backend `ApiValidationError` onto the form's known fields.
+	 *
+	 * Field errors for names the form doesn't recognise are surfaced in the general
+	 * error area instead of being silently dropped.
+	 *
+	 * @param error - Validation error thrown by `JobRoleService.createJobRole`.
+	 * @returns Field name to combined error message, plus the summary banner text.
+	 */
+	private mapApiValidationError(error: ApiValidationError): {
+		errors: Record<string, string>;
+		errorMessage: string;
+	} {
+		const knownFields = new Set<string>(CREATE_FORM_FIELDS);
+		const errors: Record<string, string> = {};
+		const unmatchedMessages: string[] = [];
+
+		for (const { field, message } of error.fieldErrors) {
+			if (knownFields.has(field)) {
+				errors[field] = errors[field] ? `${errors[field]} ${message}` : message;
+			} else {
+				unmatchedMessages.push(message);
+			}
+		}
+
+		if (unmatchedMessages.length > 0) {
+			return { errors, errorMessage: unmatchedMessages.join(" ") };
+		}
+		if (Object.keys(errors).length > 0) {
+			return {
+				errors,
+				errorMessage: "Please correct the highlighted fields and try again.",
+			};
+		}
+		return { errors, errorMessage: error.message };
+	}
+
+	/**
 	 * Echoes submitted values back so a rejected form does not have to be retyped.
 	 *
 	 * @param body - Raw request body from the form post.
@@ -315,35 +340,37 @@ export class JobRoleController {
 				return;
 			}
 
-			if (error instanceof ForbiddenError) {
+			if (!(error instanceof AppError)) {
 				res
-					.status(403)
-					.render("pages/error.njk", { error: error.backendMessage });
+					.status(500)
+					.render("pages/error.njk", { error: "Internal Server Error" });
+				return;
+			}
+
+			if (error.statusCode === 403) {
+				res.status(403).render("pages/error.njk", { error: error.message });
 				return;
 			}
 
 			try {
-				if (error instanceof JobRoleValidationError) {
+				if (error instanceof ApiValidationError) {
+					const { errors, errorMessage } = this.mapApiValidationError(error);
 					await this.renderCreateForm(res, token, {
 						status: 400,
 						formValues: this.toFormValues(body),
-						errors: error.fieldErrors,
-						errorMessage:
-							"Please correct the highlighted fields and try again.",
+						errors,
+						errorMessage,
 					});
 					return;
 				}
 
-				const fieldForMessage = FIELD_ERROR_BY_MESSAGE[message];
+				// createJobRole only ever throws safe, user-facing messages via AppError/createApiError.
+				const fieldForMessage = FIELD_ERROR_BY_MESSAGE[error.message];
 				await this.renderCreateForm(res, token, {
 					status: 400,
 					formValues: this.toFormValues(body),
-					errors: fieldForMessage ? { [fieldForMessage]: message } : {},
-					errorMessage: fieldForMessage
-						? null
-						: SAFE_CREATE_ERROR_MESSAGES.has(message)
-							? message
-							: "We couldn't create this job role right now. Please try again.",
+					errors: fieldForMessage ? { [fieldForMessage]: error.message } : {},
+					errorMessage: fieldForMessage ? null : error.message,
 				});
 			} catch (renderError) {
 				Logger.error(

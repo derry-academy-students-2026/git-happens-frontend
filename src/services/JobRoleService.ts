@@ -1,5 +1,6 @@
 import axios from "axios";
 import apiClient from "../config/apiClient.js";
+import { createApiError, createNetworkError } from "../errors/customErrors.js";
 import Logger from "../lib/logger.js";
 import type {
 	BandDTO,
@@ -12,42 +13,6 @@ type UnauthorizedResponse = {
 	message?: string;
 	redirectTo?: string;
 };
-
-type BackendFieldError = {
-	field: string;
-	message: string;
-};
-
-type CreateJobRoleErrorBody = {
-	message?: string;
-	errors?: BackendFieldError[];
-};
-
-/** Raised when the backend rejects `POST /job-roles` with field-level validation errors. */
-export class JobRoleValidationError extends Error {
-	fieldErrors: Record<string, string>;
-
-	/**
-	 * @param message - The backend's top-level message.
-	 * @param fieldErrors - Field name to combined error message.
-	 */
-	constructor(message: string, fieldErrors: Record<string, string>) {
-		super(message);
-		this.name = "JobRoleValidationError";
-		this.fieldErrors = fieldErrors;
-	}
-}
-
-/** Raised when the backend rejects a request with a 403, carrying its own message. */
-export class ForbiddenError extends Error {
-	/**
-	 * @param backendMessage - The backend's explanation for why the request was refused.
-	 */
-	constructor(public backendMessage: string) {
-		super("Forbidden");
-		this.name = "ForbiddenError";
-	}
-}
 
 /** Fetches job role data from the backend API. */
 export class JobRoleService {
@@ -68,7 +33,7 @@ export class JobRoleService {
 			Logger.warn(
 				"Backend reported authentication required for job role API call",
 			);
-			throw new Error("Authentication required");
+			throw createApiError(401, body);
 		}
 	}
 
@@ -162,7 +127,7 @@ export class JobRoleService {
 				Logger.error(
 					`Capabilities request failed with status ${status ?? "none"}: ${error.message}`,
 				);
-				if (status === 500) throw new Error("Backend server error");
+				if (status === 500) throw createApiError(500, error.response?.data);
 			} else {
 				Logger.error(
 					`Unexpected error fetching capabilities: ${String(error)}`,
@@ -195,7 +160,7 @@ export class JobRoleService {
 				Logger.error(
 					`Bands request failed with status ${status ?? "none"}: ${error.message}`,
 				);
-				if (status === 500) throw new Error("Backend server error");
+				if (status === 500) throw createApiError(500, error.response?.data);
 			} else {
 				Logger.error(`Unexpected error fetching bands: ${String(error)}`);
 			}
@@ -209,12 +174,10 @@ export class JobRoleService {
 	 * @param request - The job role details to create.
 	 * @param token - Bearer token for the signed in user.
 	 * @returns The created job role, as returned by the API with a 201.
-	 * @throws {JobRoleValidationError} When the API responds 400 with field-level `errors`.
-	 * @throws {Error} "Invalid job role details" when the API responds 400 without field errors.
-	 * @throws {ForbiddenError} When the user is not an admin and the API responds 403.
-	 * @throws {Error} The API's message when a referenced capability or band is missing (404).
-	 * @throws {Error} "Backend server error" when the API responds 500.
-	 * @throws {Error} The original error for any other failure, such as a timeout.
+	 * @throws {ApiValidationError} When the API responds 400; carries any field-level errors sent.
+	 * @throws {AppError} statusCode 403 when the user is not an admin.
+	 * @throws {AppError} statusCode 404 with the API's message when a referenced capability or band is missing.
+	 * @throws {AppError} statusCode 500, or a network-failure `AppError`, with a generic retryable message - never the raw backend/network error.
 	 */
 	async createJobRole(
 		request: CreateJobRoleRequestDTO,
@@ -230,53 +193,29 @@ export class JobRoleService {
 		} catch (error) {
 			this.throwIfUnauthorized(error);
 			if (axios.isAxiosError(error)) {
-				const status = error.response?.status;
+				if (!error.response) {
+					Logger.error(
+						`Create job role request failed with no response: ${error.message}`,
+					);
+					throw createNetworkError(
+						"We couldn't create this job role right now. Please try again.",
+					);
+				}
+
+				const { status, data } = error.response;
 				Logger.error(
-					`Create job role request failed with status ${status ?? "none"}: ${error.message}`,
+					`Create job role request failed with status ${status}: ${error.message}`,
 				);
-				const body = error.response?.data as CreateJobRoleErrorBody | undefined;
-				if (status === 400) {
-					const fieldErrors = this.toFieldErrorMap(body?.errors);
-					const message = body?.message ?? "Invalid job role details";
-					if (Object.keys(fieldErrors).length > 0) {
-						throw new JobRoleValidationError(message, fieldErrors);
-					}
-					throw new Error(message);
-				}
-				if (status === 403) {
-					throw new ForbiddenError(body?.message ?? "Forbidden");
-				}
-				if (status === 404) {
-					// The backend distinguishes "Capability not found" from "Band not found".
-					throw new Error(body?.message ?? "Capability or band not found");
-				}
-				if (status === 500) throw new Error("Backend server error");
-			} else {
-				Logger.error(`Unexpected error creating job role: ${String(error)}`);
+				// The backend distinguishes "Capability not found" from "Band not found" in its message.
+				const fallbackMessage =
+					status === 404 ? "Capability or band not found" : undefined;
+				throw createApiError(status, data, fallbackMessage);
 			}
-			throw error;
-		}
-	}
 
-	/**
-	 * Combines backend field errors into one message per field.
-	 *
-	 * @param errors - Field-level errors from the backend's 400 response, if present.
-	 * @returns Field name to combined error message; empty when there are none.
-	 */
-	private toFieldErrorMap(
-		errors: BackendFieldError[] | undefined,
-	): Record<string, string> {
-		if (!errors?.length) {
-			return {};
+			Logger.error(`Unexpected error creating job role: ${String(error)}`);
+			throw createNetworkError(
+				"We couldn't create this job role right now. Please try again.",
+			);
 		}
-
-		const fieldErrors: Record<string, string> = {};
-		for (const { field, message } of errors) {
-			fieldErrors[field] = fieldErrors[field]
-				? `${fieldErrors[field]} ${message}`
-				: message;
-		}
-		return fieldErrors;
 	}
 }
