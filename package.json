@@ -1,11 +1,13 @@
 {
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.7",
+		"@playwright/test": "^1.62.1",
 		"@types/express": "^5.0.6",
 		"@types/node": "^26.1.2",
 		"@types/nunjucks": "^3.2.6",
 		"@types/supertest": "^7.2.1",
 		"@vitest/coverage-v8": "^4.1.10",
+		"playwright-bdd": "^9.2.0",
 		"supertest": "^7.2.2",
 		"tsx": "^4.23.5",
 		"typescript": "^7.0.2",
@@ -35,14 +37,15 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
+		"test:e2e": "playwright test",
+		"test:e2e:bdd": "bddgen -c playwright-bdd.config.ts && playwright test -c playwright-bdd.config.ts",
+		"test:e2e:ui": "playwright test --ui",
+		"test:e2e:report": "playwright show-report",
 		"format": "biome format --write .",
 		"lint": "biome lint .",
 		"check": "biome check .",
 		"ci:check": "biome ci .",
 		"lint:fix": "biome lint --write ."
-	},
-	"vitest": {
-		"environment": "node"
 	},
 	"repository": {
 		"type": "git",
