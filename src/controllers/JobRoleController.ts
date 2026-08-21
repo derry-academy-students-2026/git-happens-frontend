@@ -4,8 +4,8 @@ import { CreateJobRoleSchema } from "../dtos/jobRoleDto.js";
 import Logger from "../lib/logger.js";
 import {
 	ForbiddenError,
-	JobRoleValidationError,
 	type JobRoleService,
+	JobRoleValidationError,
 } from "../services/JobRoleService.js";
 
 /** Fields echoed back to the add job role form when validation fails. */
@@ -55,7 +55,9 @@ export class JobRoleController {
 		try {
 			const token = req.authenticatedUser?.token;
 			if (!token) {
-				Logger.warn("Job role list requested without JWT; redirecting to login");
+				Logger.warn(
+					"Job role list requested without JWT; redirecting to login",
+				);
 				res.redirect("/auth/login?returnTo=%2Fjobs%2Fjob-roles");
 				return;
 			}
@@ -67,8 +69,13 @@ export class JobRoleController {
 			Logger.error(
 				`Failed to render the job role list: ${error instanceof Error ? error.message : String(error)}`,
 			);
-			if (error instanceof Error && error.message === "Authentication required") {
-				Logger.warn("Backend rejected job role list token; clearing JWT cookie");
+			if (
+				error instanceof Error &&
+				error.message === "Authentication required"
+			) {
+				Logger.warn(
+					"Backend rejected job role list token; clearing JWT cookie",
+				);
 				res.clearCookie("jwt", { path: "/" });
 				res.redirect("/auth/login?returnTo=%2Fjobs%2Fjob-roles");
 				return;
@@ -103,8 +110,12 @@ export class JobRoleController {
 		try {
 			const token = req.authenticatedUser?.token;
 			if (!token) {
-				Logger.warn(`Job role ${id} requested without JWT; redirecting to login`);
-				res.redirect(`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+				Logger.warn(
+					`Job role ${id} requested without JWT; redirecting to login`,
+				);
+				res.redirect(
+					`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`,
+				);
 				return;
 			}
 
@@ -115,9 +126,13 @@ export class JobRoleController {
 			const message = error instanceof Error ? error.message : String(error);
 			Logger.error(`Failed to render job role ${id}: ${message}`);
 			if (message === "Authentication required") {
-				Logger.warn(`Backend rejected token for job role ${id}; clearing JWT cookie`);
+				Logger.warn(
+					`Backend rejected token for job role ${id}; clearing JWT cookie`,
+				);
 				res.clearCookie("jwt", { path: "/" });
-				res.redirect(`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+				res.redirect(
+					`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`,
+				);
 				return;
 			}
 			if (message === "Job role not found") {
@@ -313,7 +328,8 @@ export class JobRoleController {
 						status: 400,
 						formValues: this.toFormValues(body),
 						errors: error.fieldErrors,
-						errorMessage: "Please correct the highlighted fields and try again.",
+						errorMessage:
+							"Please correct the highlighted fields and try again.",
 					});
 					return;
 				}

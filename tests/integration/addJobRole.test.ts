@@ -60,9 +60,11 @@ describe("add new job role workflow", () => {
 		get.mockReset();
 		post.mockReset();
 		get.mockImplementation((url: string) => {
-			if (url === "capabilities") return Promise.resolve({ data: capabilities });
+			if (url === "capabilities")
+				return Promise.resolve({ data: capabilities });
 			if (url === "bands") return Promise.resolve({ data: bands });
-			if (url === "job-roles/9") return Promise.resolve({ data: createdJobRole });
+			if (url === "job-roles/9")
+				return Promise.resolve({ data: createdJobRole });
 			throw new Error(`Unexpected GET ${url}`);
 		});
 	});
@@ -162,7 +164,8 @@ describe("add new job role workflow", () => {
 
 	it("renders a closing date that carries an end-of-day time component as a date only", async () => {
 		get.mockImplementation((url: string) => {
-			if (url === "capabilities") return Promise.resolve({ data: capabilities });
+			if (url === "capabilities")
+				return Promise.resolve({ data: capabilities });
 			if (url === "bands") return Promise.resolve({ data: bands });
 			if (url === "job-roles/9") {
 				return Promise.resolve({
@@ -188,7 +191,9 @@ describe("add new job role workflow", () => {
 				status: 400,
 				data: {
 					message: "Invalid job role details",
-					errors: [{ field: "roleName", message: "Role name must not be empty" }],
+					errors: [
+						{ field: "roleName", message: "Role name must not be empty" },
+					],
 				},
 			},
 		});
@@ -213,7 +218,10 @@ describe("add new job role workflow", () => {
 					message: "Invalid job role details",
 					errors: [
 						{ field: "roleName", message: "Role name must not be empty" },
-						{ field: "closingDate", message: "Closing date must be in the future" },
+						{
+							field: "closingDate",
+							message: "Closing date must be in the future",
+						},
 					],
 				},
 			},
@@ -286,7 +294,9 @@ describe("add new job role workflow", () => {
 			isAxiosError: true,
 			response: {
 				status: 403,
-				data: { message: "Users can only access list and information endpoints" },
+				data: {
+					message: "Users can only access list and information endpoints",
+				},
 			},
 		});
 

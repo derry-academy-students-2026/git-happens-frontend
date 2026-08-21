@@ -16,6 +16,8 @@ export class JobRoleListPage extends BasePage {
 	}
 
 	public async getFirstRoleName(): Promise<string> {
-		return (await this.firstRole.locator(".job-item__title").textContent()) ?? "";
+		return (
+			(await this.firstRole.locator(".job-item__title").textContent()) ?? ""
+		);
 	}
 }

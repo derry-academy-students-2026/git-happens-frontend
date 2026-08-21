@@ -60,9 +60,10 @@ Then("I should see an invalid credentials message", async ({ page }) => {
 		page,
 		"Invalid credentials should keep the person on the login page.",
 	).toHaveURL("/auth/login");
-	await expect(page, "The login page should have the expected title.").toHaveTitle(
-		"Login | Kainos",
-	);
+	await expect(
+		page,
+		"The login page should have the expected title.",
+	).toHaveTitle("Login | Kainos");
 	await expect(
 		loginPage.errorMessage,
 		"Invalid credentials should show an error message.",

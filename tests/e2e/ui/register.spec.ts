@@ -31,7 +31,9 @@ test.describe("Account registration", () => {
 		);
 
 		await expect(page).toHaveURL("/auth/register");
-		await expect(registerPage.errorMessage).toContainText("Passwords do not match");
+		await expect(registerPage.errorMessage).toContainText(
+			"Passwords do not match",
+		);
 		await expect(registerPage.emailInput).toHaveValue("candidate@example.com");
 	});
 });

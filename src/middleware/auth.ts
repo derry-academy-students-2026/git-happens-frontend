@@ -24,7 +24,9 @@ type JwtPayload = {
  * @param cookieHeader - Raw Cookie header value from the incoming request.
  * @returns JWT token value when present, otherwise `null`.
  */
-export function getJwtFromCookie(cookieHeader: string | undefined): string | null {
+export function getJwtFromCookie(
+	cookieHeader: string | undefined,
+): string | null {
 	const jwtCookie = (cookieHeader ?? "")
 		.split(";")
 		.map((item) => item.trim())

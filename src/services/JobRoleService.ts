@@ -65,7 +65,9 @@ export class JobRoleService {
 		const status = error.response?.status;
 		const body = error.response?.data as UnauthorizedResponse | undefined;
 		if (status === 401 || body?.redirectTo === "/login") {
-			Logger.warn("Backend reported authentication required for job role API call");
+			Logger.warn(
+				"Backend reported authentication required for job role API call",
+			);
 			throw new Error("Authentication required");
 		}
 	}
@@ -262,7 +264,9 @@ export class JobRoleService {
 	 * @param errors - Field-level errors from the backend's 400 response, if present.
 	 * @returns Field name to combined error message; empty when there are none.
 	 */
-	private toFieldErrorMap(errors: BackendFieldError[] | undefined): Record<string, string> {
+	private toFieldErrorMap(
+		errors: BackendFieldError[] | undefined,
+	): Record<string, string> {
 		if (!errors?.length) {
 			return {};
 		}

@@ -15,6 +15,8 @@ export class ErrorPage extends BasePage {
 		super(page);
 		this.heading = page.getByRole("heading", { name: "Something went wrong" });
 		this.errorMessage = page.locator(".notice p");
-		this.backToRolesLink = page.getByRole("link", { name: "Back to job roles" });
+		this.backToRolesLink = page.getByRole("link", {
+			name: "Back to job roles",
+		});
 	}
 }
