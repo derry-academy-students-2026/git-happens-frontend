@@ -94,6 +94,7 @@ export class AuthController {
 			const { token } = await this.authApiService.login(email, password);
 			res.cookie("jwt", token, {
 				httpOnly: true,
+				// sameSite: "lax" is also our CSRF mitigation - browsers withhold this cookie on cross-site POSTs.
 				sameSite: "lax",
 				secure: process.env.NODE_ENV === "production",
 				path: "/",

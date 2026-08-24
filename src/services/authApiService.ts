@@ -139,7 +139,9 @@ export class AuthApiServiceImpl implements AuthApiService {
 	): Promise<RegisterResponseDto> {
 		const registerPath = process.env.AUTH_REGISTER_PATH ?? "/auth/register";
 		const maskedEmail = this.maskEmailForLogs(email);
-		Logger.debug(`Calling register API path ${registerPath} for ${maskedEmail}`);
+		Logger.debug(
+			`Calling register API path ${registerPath} for ${maskedEmail}`,
+		);
 
 		try {
 			const response = await apiClient.post<RegisterResponseDto>(registerPath, {

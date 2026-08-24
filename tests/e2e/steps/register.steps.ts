@@ -56,4 +56,3 @@ Then(
 		).toBeVisible();
 	},
 );
-

@@ -24,6 +24,11 @@
 	--wash-green: #eef5ea;
 	--line: #dde1ec;
 
+	/* Error/validation state, shared by auth and job role forms */
+	--error-bg: #fdeceb;
+	--error-border: #f3b4af;
+	--error-text: #8a1f17;
+
 	--font-display:
 		"Foundry Gridnik", "Century Gothic", "URW Gothic", "Avant Garde",
 		"Trebuchet MS", sans-serif;
@@ -96,6 +101,19 @@ img {
 :where(a, button, [tabindex]):focus-visible {
 	outline: 3px solid var(--kainos-bright-blue);
 	outline-offset: 3px;
+}
+
+/* Visually hides text while keeping it available to assistive technology. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
 }
 
 /* ---------- Display type ---------- */
@@ -327,6 +345,17 @@ img {
 	border-color: var(--kainos-mid-blue);
 }
 
+.button--outline {
+	background: var(--white);
+	border-color: var(--kainos-blue);
+	color: var(--kainos-blue);
+}
+
+.button--outline:hover {
+	background: var(--kainos-blue);
+	color: var(--white);
+}
+
 /* ---------- Results bar ---------- */
 
 .results-bar {
@@ -337,6 +366,13 @@ img {
 	gap: 1rem;
 	padding-bottom: 1.1rem;
 	border-bottom: 3px solid var(--kainos-blue);
+}
+
+.results-bar__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1.25rem;
 }
 
 .results-bar__count {
@@ -473,9 +509,9 @@ img {
 	margin: 1.25rem 0 0;
 	padding: 0.85rem 1rem;
 	border-radius: 4px;
-	background: #fdeceb;
-	border: 1px solid #f3b4af;
-	color: #8a1f17;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	color: var(--error-text);
 	font-weight: 600;
 }
 
@@ -705,9 +741,9 @@ img {
 	margin: 1.25rem 0 0;
 	padding: 0.85rem 1rem;
 	border-radius: 4px;
-	background: #fdeceb;
-	border: 1px solid #f3b4af;
-	color: #8a1f17;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	color: var(--error-text);
 	font-weight: 600;
 }
 
@@ -951,6 +987,128 @@ img {
 .site-footer__rule {
 	height: 4px;
 	background: var(--gradient);
+}
+
+/* ---------- Job role form ---------- */
+
+.form-card {
+	max-width: 760px;
+	margin-inline: auto;
+	padding: 2.25rem 2rem;
+	border: 1px solid var(--line);
+	border-left: 5px solid var(--kainos-green);
+	border-radius: 4px;
+	background: var(--white);
+}
+
+.form-card__intro {
+	margin: 0.9rem 0 0;
+}
+
+.form-error-summary {
+	margin: 1.25rem 0 0;
+	padding: 0.85rem 1rem;
+	border-radius: 4px;
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	color: var(--error-text);
+	font-weight: 600;
+}
+
+.role-form {
+	margin-top: 1.5rem;
+	display: grid;
+	gap: 1.1rem;
+}
+
+.role-form__row {
+	display: grid;
+	gap: 1.1rem;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.role-form__field {
+	display: grid;
+	gap: 0.45rem;
+	align-content: start;
+}
+
+.role-form__field label {
+	font-family: var(--font-display);
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--kainos-dark-green);
+}
+
+.role-form__field input,
+.role-form__field select,
+.role-form__field textarea {
+	min-height: 44px;
+	padding: 0.75rem 0.85rem;
+	font: inherit;
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	color: var(--kainos-blue);
+	background: var(--white);
+}
+
+.role-form__field textarea {
+	min-height: 130px;
+	resize: vertical;
+}
+
+.role-form__field input:focus-visible,
+.role-form__field select:focus-visible,
+.role-form__field textarea:focus-visible {
+	outline: 3px solid var(--kainos-bright-blue);
+	outline-offset: 2px;
+	border-color: var(--kainos-bright-blue);
+}
+
+.role-form__hint {
+	display: block;
+	color: var(--kainos-grey);
+	font-size: 0.875rem;
+}
+
+.role-form__field--invalid input,
+.role-form__field--invalid select,
+.role-form__field--invalid textarea {
+	border-width: 2px;
+	border-color: var(--error-text);
+}
+
+.role-form__error {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	color: var(--error-text);
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+/* Decorative only; the error text carries the meaning via the sr-only "Error: " prefix in the markup. */
+.role-form__error::before {
+	content: "!";
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 1.05rem;
+	height: 1.05rem;
+	border-radius: 50%;
+	background: var(--error-text);
+	color: var(--white);
+	font-size: 0.72rem;
+}
+
+.role-form__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-top: 0.5rem;
 }
 
 /* ---------- Responsive ---------- */

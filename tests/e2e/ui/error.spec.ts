@@ -17,7 +17,7 @@ test.describe("Error page", () => {
 		loginPage,
 		page,
 	}) => {
-        await loginPage.navigate();
+		await loginPage.navigate();
 
 		await loginPage.signIn("test1@example.com", "password123!");
 		await page.goto("/jobs/job-roles/999999");
