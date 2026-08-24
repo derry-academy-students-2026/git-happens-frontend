@@ -1,0 +1,32 @@
+# --- Dependencies stage: install full dependency graph for building ---
+FROM node:22-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# --- Build stage: compile TypeScript and assemble runtime assets ---
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build \
+	&& cp -r src/views dist/views \
+	&& cp -r src/public dist/public
+
+# --- Production dependencies stage: install only what's needed to run ---
+FROM node:22-alpine AS prod-deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# --- Runtime stage: minimal image with only compiled output and prod deps ---
+FROM node:22-alpine AS runtime
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY package.json ./
+
+EXPOSE 3000
+
+CMD ["node", "dist/index.js"]
