@@ -35,3 +35,9 @@ variable "tags" {
     managed_by = "terraform"
   }
 }
+
+variable "key_vault_name_prefix" {
+  description = "Short prefix for the Key Vault name (a random 8-character hex suffix is appended; total name must stay within Azure's 24-character limit)."
+  type        = string
+  default     = "kv-ghf"
+}
