@@ -22,3 +22,18 @@ output "key_vault_uri" {
   description = "URI of the Key Vault, used to reference secrets from apps."
   value       = azurerm_key_vault.this.vault_uri
 }
+
+output "managed_identity_id" {
+  description = "Resource ID of the user-assigned managed identity."
+  value       = azurerm_user_assigned_identity.app.id
+}
+
+output "managed_identity_client_id" {
+  description = "Client ID of the user-assigned managed identity, used by the Container App."
+  value       = azurerm_user_assigned_identity.app.client_id
+}
+
+output "managed_identity_principal_id" {
+  description = "Principal ID of the user-assigned managed identity, used for role assignments."
+  value       = azurerm_user_assigned_identity.app.principal_id
+}
