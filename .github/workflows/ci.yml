@@ -49,14 +49,14 @@ jobs:
       - name: Log in to Azure Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          registry: acraiacademy26.azurecr.io
           username: ${{ secrets.AZURE_CLIENT_ID }}
           password: ${{ secrets.AZURE_CLIENT_SECRET }}
       - name: Push Docker image
         env:
-          IMAGE: ${{ secrets.ACR_LOGIN_SERVER }}/git-happens-frontend
+          IMAGE: acraiacademy26.azurecr.io/git-happens-frontend
           LOCAL_IMAGE: git-happens-frontend:${{ github.sha }}
-          SHA_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/git-happens-frontend:${{ github.sha }}
+          SHA_TAG: acraiacademy26.azurecr.io/git-happens-frontend:${{ github.sha }}
         run: |
           docker tag "$LOCAL_IMAGE" "$SHA_TAG"
           docker push "$SHA_TAG"
