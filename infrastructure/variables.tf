@@ -41,8 +41,3 @@ variable "key_vault_name_prefix" {
   type        = string
   default     = "kv-ghf"
 }
-
-variable "key_vault_admin_object_id" {
-  description = "Azure AD object ID of the user granted Key Vault Secrets Officer, for managing secrets via the Portal/CLI."
-  type        = string
-}
