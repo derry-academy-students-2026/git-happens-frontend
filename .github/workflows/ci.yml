@@ -18,4 +18,48 @@ jobs:
       - run: npm run lint
       - run: npm test
       - name: Build Docker image
-        run: docker build --tag git-happens-frontend:${{ github.sha }} .
+        env:
+          IMAGE_TAG: git-happens-frontend:${{ github.sha }}
+        run: docker build --tag "$IMAGE_TAG" .
+
+      - name: Save Docker image
+        if: github.event_name == 'push'
+        run: docker save git-happens-frontend:${{ github.sha }} | gzip > git-happens-frontend.tar.gz
+
+      - name: Upload Docker image
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: git-happens-frontend-image
+          path: git-happens-frontend.tar.gz
+
+  push:
+    if: github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: git-happens-frontend-image
+
+      - name: Load Docker image
+        run: gunzip -c git-happens-frontend.tar.gz | docker load
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Push Docker image
+        env:
+          IMAGE: ${{ secrets.ACR_LOGIN_SERVER }}/git-happens-frontend
+          LOCAL_IMAGE: git-happens-frontend:${{ github.sha }}
+          SHA_TAG: ${{ secrets.ACR_LOGIN_SERVER }}/git-happens-frontend:${{ github.sha }}
+        run: |
+          docker tag "$LOCAL_IMAGE" "$SHA_TAG"
+          docker push "$SHA_TAG"
+          docker tag "$SHA_TAG" "$IMAGE:latest"
+          docker push "$IMAGE:latest"
+
