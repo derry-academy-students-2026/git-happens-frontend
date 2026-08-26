@@ -14,7 +14,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  
+
   # When using 'az login', credentials are automatically picked up.
   # Uncomment below if using service principal authentication instead.
   # client_id       = var.azure_client_id
