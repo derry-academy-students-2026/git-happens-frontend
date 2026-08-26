@@ -19,3 +19,12 @@ resource "azurerm_key_vault" "this" {
     environment = var.environment
   })
 }
+
+# Grants the developer permission to manage secrets via the Portal/CLI.
+# Pinned to a specific object ID (not data.azurerm_client_config.current) so
+# CI's service principal applying later doesn't replace/revoke this grant.
+resource "azurerm_role_assignment" "kv_secrets_officer_developer" {
+  scope                = azurerm_key_vault.this.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = var.key_vault_admin_object_id
+}
