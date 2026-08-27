@@ -17,37 +17,37 @@ resource "azurerm_container_app" "frontend" {
   secret {
     name                = "port"
     identity            = azurerm_user_assigned_identity.app.id
-    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/PORT"
+    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/port"
   }
 
   secret {
     name                = "api-base-url"
     identity            = azurerm_user_assigned_identity.app.id
-    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/API-BASE-URL"
+    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/api-base-url"
   }
 
   secret {
     name                = "api-timeout-ms"
     identity            = azurerm_user_assigned_identity.app.id
-    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/API-TIMEOUT-MS"
+    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/api-timeout-ms"
   }
 
   secret {
     name                = "node-env"
     identity            = azurerm_user_assigned_identity.app.id
-    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/NODE-ENV"
+    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/node-env"
   }
 
   secret {
     name                = "log-level"
     identity            = azurerm_user_assigned_identity.app.id
-    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/LOG-LEVEL"
+    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/log-level"
   }
 
   secret {
     name                = "static-max-age"
     identity            = azurerm_user_assigned_identity.app.id
-    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/STATIC-MAX-AGE"
+    key_vault_secret_id = "${azurerm_key_vault.this.vault_uri}secrets/static-max-age"
   }
 
   template {
