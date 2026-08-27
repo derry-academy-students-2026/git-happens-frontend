@@ -41,3 +41,15 @@ variable "key_vault_name_prefix" {
   type        = string
   default     = "kv-ghf"
 }
+
+variable "container_app_environment_name" {
+  description = "Name of the shared Container App Environment, created and owned by the backend's Terraform."
+  type        = string
+  default     = "git-happens-dev-environment"
+}
+
+variable "container_app_environment_resource_group_name" {
+  description = "Resource group containing the shared Container App Environment."
+  type        = string
+  default     = "git-happens-dev"
+}

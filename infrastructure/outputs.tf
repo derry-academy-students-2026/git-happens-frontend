@@ -37,3 +37,13 @@ output "managed_identity_principal_id" {
   description = "Principal ID of the user-assigned managed identity, used for role assignments."
   value       = azurerm_user_assigned_identity.app.principal_id
 }
+
+output "container_app_environment_id" {
+  description = "Resource ID of the shared Container App Environment (owned by the backend's Terraform)."
+  value       = data.azurerm_container_app_environment.shared.id
+}
+
+output "container_app_environment_default_domain" {
+  description = "Default domain of the shared Container App Environment, used to build internal FQDNs between apps."
+  value       = data.azurerm_container_app_environment.shared.default_domain
+}
