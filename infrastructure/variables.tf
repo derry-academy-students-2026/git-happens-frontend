@@ -53,3 +53,15 @@ variable "container_app_environment_resource_group_name" {
   type        = string
   default     = "git-happens-dev"
 }
+
+variable "acr_login_server" {
+  description = "Login server for the shared Azure Container Registry."
+  type        = string
+  default     = "acraiacademy26.azurecr.io"
+}
+
+variable "container_image" {
+  description = "Fully qualified image reference for the frontend Container App."
+  type        = string
+  default     = "acraiacademy26.azurecr.io/git-happens-frontend:latest"
+}

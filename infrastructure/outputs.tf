@@ -38,6 +38,11 @@ output "managed_identity_principal_id" {
   value       = azurerm_user_assigned_identity.app.principal_id
 }
 
+output "frontend_fqdn" {
+  description = "Public FQDN of the frontend Container App."
+  value       = azurerm_container_app.frontend.latest_revision_fqdn
+}
+
 output "container_app_environment_id" {
   description = "Resource ID of the shared Container App Environment (owned by the backend's Terraform)."
   value       = data.azurerm_container_app_environment.shared.id
