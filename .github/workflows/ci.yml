@@ -17,10 +17,10 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
-  #    - name: Build Docker image
-  #      env:
-  #       IMAGE_TAG: git-happens-frontend:${{ github.sha }}
-  #      run: docker build --tag "$IMAGE_TAG" .
+        # - name: Build Docker image
+        #   env:
+        #     IMAGE_TAG: git-happens-frontend:${{ github.sha }}
+        #   run: docker build --tag "$IMAGE_TAG" .
 
   #    - name: Save Docker image
   #      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
