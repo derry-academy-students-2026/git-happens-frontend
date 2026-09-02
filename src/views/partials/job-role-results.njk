@@ -1,6 +1,11 @@
 <div class="results-bar">
 	<h2 class="display display--section">All roles</h2>
-	<span class="results-bar__count">{{ pagination.totalCount }} role{% if pagination.totalCount != 1 %}s{% endif %}</span>
+	<div class="results-bar__actions">
+		<span class="results-bar__count">{{ pagination.totalCount }} role{% if pagination.totalCount != 1 %}s{% endif %}</span>
+		{% if isAdmin %}
+			<a class="button button--ink" href="/jobs/job-roles/new">Add a job role</a>
+		{% endif %}
+	</div>
 </div>
 
 {% if jobRoles | length %}

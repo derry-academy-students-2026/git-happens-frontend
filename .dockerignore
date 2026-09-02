@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+logs
+test-results
+playwright-report
+code_reviews
+.git
+.github
+.vscode
+npm-debug.log
+*.log
+.env
+.env.*

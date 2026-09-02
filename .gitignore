@@ -20,6 +20,7 @@ pnpm-debug.log*
 .env.*
 !.env.example
 !.env.sample
+!.env.e2e.*.example
 
 # Prisma local artifacts
 prisma/*.db
@@ -43,3 +44,18 @@ kainos-brand-enforcer/
 .windsurf/skills/
 skills-lock.json
 .github/copilot-instructions.md
+
+test-results/
+playwright-report/
+tests/e2e/.features-gen/
+.playwright-mcp/
+
+# Terraform generated state, working directory, and local overrides
+infrastructure/.terraform/
+infrastructure/*.tfstate
+infrastructure/*.tfstate.*
+infrastructure/crash.log
+infrastructure/tfplan
+infrastructure/*.tfvars.json
+infrastructure/*_override.tf
+infrastructure/*_override.tf.json
