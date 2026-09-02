@@ -70,10 +70,12 @@ export function decodeAuthenticatedUser(token: string): AuthenticatedUser {
 	try {
 		const decoded = Buffer.from(payload, "base64url").toString("utf8");
 		const parsedPayload = JSON.parse(decoded) as JwtPayload;
+		const email =
+			typeof parsedPayload.email === "string" ? parsedPayload.email : undefined;
 		return {
 			token,
 			role: parsedPayload.role === "admin" ? "admin" : "user",
-			email: typeof parsedPayload.email === "string" ? parsedPayload.email : undefined,
+			...(email === undefined ? {} : { email }),
 		};
 	} catch {
 		Logger.warn("JWT payload could not be decoded; defaulting role to user");

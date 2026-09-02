@@ -3,11 +3,13 @@ import { JobRoleController } from "../controllers/JobRoleController.js";
 import Logger from "../lib/logger.js";
 import { requireAdmin, requireJwt } from "../middleware/auth.js";
 import { validateCreateJobRole } from "../middleware/validateJobRole.js";
+import { ApplicationApiServiceImpl } from "../services/applicationApiService.js";
 import { JobRoleService } from "../services/JobRoleService.js";
 
 const jobRoleRouter = Router();
 const service = new JobRoleService();
-const controller = new JobRoleController(service);
+const applicationService = new ApplicationApiServiceImpl();
+const controller = new JobRoleController(service, applicationService);
 
 /**
  * Renders the jobs landing page.
