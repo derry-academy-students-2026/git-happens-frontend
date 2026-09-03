@@ -1,20 +1,20 @@
-import axios, { AxiosError, AxiosHeaders } from "axios";
+import { AxiosError, AxiosHeaders } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../../src/config/apiClient.js");
 const { default: apiClient } = await import("../../src/config/apiClient.js");
 const post = vi.mocked(apiClient.post);
 
-const { ApplicationApiServiceImpl } = await import(
-	"../../src/services/applicationApiService.js"
+const { ApplicationServiceImpl } = await import(
+	"../../src/services/applicationService.js"
 );
 
-const applicationService = new ApplicationApiServiceImpl();
+const applicationService = new ApplicationServiceImpl();
 
 const testApplicationData = {
 	fullName: "John Doe",
 	countryCode: "+44",
-	phoneNumber: "7123456789",
+	phoneNumber: "07123456789",
 	email: "john@example.com",
 	applicationText: "I am interested",
 };
@@ -29,7 +29,7 @@ function axiosErrorWithStatus(status: number, data: object = {}) {
 	});
 }
 
-describe("ApplicationApiServiceImpl.applyForRole", () => {
+describe("ApplicationServiceImpl.applyForRole", () => {
 	beforeEach(() => {
 		post.mockReset();
 	});
@@ -125,7 +125,7 @@ describe("ApplicationApiServiceImpl.applyForRole", () => {
 		).rejects.toThrow("Backend server error");
 	});
 
-	it("rethrows non-Axios errors", async () => {
+	it("converts unexpected errors to a safe network error", async () => {
 		post.mockRejectedValue(new Error("Network error"));
 
 		await expect(
@@ -134,6 +134,6 @@ describe("ApplicationApiServiceImpl.applyForRole", () => {
 				testApplicationData,
 				"jwt-token",
 			),
-		).rejects.toThrow("Network error");
+		).rejects.toThrow("Unable to reach the server. Please try again.");
 	});
 });

@@ -80,13 +80,13 @@
 							minlength="10"
 							maxlength="14"
 							pattern="[0-9\s\-()]+"
-							placeholder="0123 456789"
+							placeholder="07123 456789"
 							required
 							autocomplete="tel-national"
 							aria-describedby="phoneNumberHint phoneNumberError"
 						/>
 						<span class="auth-form__hint" id="phoneNumberHint">
-							Exactly 10 digits. Use spaces, hyphens, or parentheses for formatting (e.g., 0123 456789).
+							10 or 11 digits. Use spaces, hyphens, or parentheses for formatting (e.g., 0123 456789 or 07123 456789).
 						</span>
 						<span class="auth-form__error-toast" id="phoneNumberError" role="alert" aria-live="polite"></span>
 					</div>
@@ -172,10 +172,10 @@
 				return /^\+\d{1,3}$/.test(value);
 			}
 
-			// Validate phone number format - exactly 10 digits
+			// Validate phone number format - 10 or 11 digits
 			function validatePhoneNumber(value) {
 				const digitsOnly = value.replace(/\D/g, "");
-				return /^[0-9\s\-()]+$/.test(value) && digitsOnly.length === 10;
+				return /^[0-9\s\-()]+$/.test(value) && (digitsOnly.length === 10 || digitsOnly.length === 11);
 			}
 
 			// Validate email
@@ -193,10 +193,8 @@
 
 					if (!hasValidChars) {
 						showErrorToast('fullName', 'Full name can only contain letters, spaces, hyphens, and apostrophes');
-						Logger.debug(`Invalid name characters: ${this.value}`);
 					} else if (!hasAtLeastOneLetter) {
 						showErrorToast('fullName', 'Full name must contain at least one letter');
-						Logger.debug(`Full name has no letters: ${this.value}`);
 					} else {
 						hideErrorToast('fullName');
 					}
@@ -215,7 +213,6 @@
 					showErrorToast('countryCode', 'Country code is required');
 				} else if (!validateCountryCode(this.value)) {
 					showErrorToast('countryCode', 'Country code must be in format +XXX (e.g., +44)');
-					Logger.debug(`Invalid country code format: ${this.value}`);
 				} else {
 					hideErrorToast('countryCode');
 				}
@@ -234,14 +231,12 @@
 				} else {
 					const digitsOnly = this.value.replace(/\D/g, "");
 					const hasInvalidChars = !/^[0-9\s\-()]*$/.test(this.value);
-					const wrongLength = digitsOnly.length !== 10;
+					const wrongLength = digitsOnly.length !== 10 && digitsOnly.length !== 11;
 
 					if (hasInvalidChars) {
 						showErrorToast('phoneNumber', 'Phone number contains invalid characters. Only numbers, spaces, hyphens, and parentheses allowed');
-						Logger.debug(`Invalid phone characters (letters?): ${this.value}`);
 					} else if (wrongLength) {
-						showErrorToast('phoneNumber', `Phone number must be exactly 10 digits (you entered ${digitsOnly.length})`);
-						Logger.debug(`Phone number has ${digitsOnly.length} digits, needs 10`);
+						showErrorToast('phoneNumber', `Phone number must be 10 or 11 digits (you entered ${digitsOnly.length})`);
 					} else {
 						hideErrorToast('phoneNumber');
 					}
@@ -253,7 +248,7 @@
 					const digitsOnly = this.value.replace(/\D/g, "");
 					const hasInvalidChars = !/^[0-9\s\-()]*$/.test(this.value);
 					
-					if (!hasInvalidChars && digitsOnly.length === 10) {
+					if (!hasInvalidChars && (digitsOnly.length === 10 || digitsOnly.length === 11)) {
 						hideErrorToast('phoneNumber');
 					}
 				}
@@ -265,7 +260,6 @@
 					showErrorToast('email', 'Contact email is required');
 				} else if (!validateEmail(this.value)) {
 					showErrorToast('email', 'Email must be a valid email address');
-					Logger.debug(`Invalid email format: ${this.value}`);
 				} else {
 					hideErrorToast('email');
 				}
@@ -337,8 +331,8 @@
 					if (!/^[0-9\s\-()]+$/.test(phoneNumber)) {
 						showErrorToast('phoneNumber', 'Phone number contains invalid characters. Only numbers, spaces, hyphens, and parentheses allowed');
 						hasErrors = true;
-					} else if (phoneDigitsOnly.length !== 10) {
-						showErrorToast('phoneNumber', `Phone number must be exactly 10 digits (you entered ${phoneDigitsOnly.length})`);
+					} else if (phoneDigitsOnly.length !== 10 && phoneDigitsOnly.length !== 11) {
+						showErrorToast('phoneNumber', `Phone number must be 10 or 11 digits (you entered ${phoneDigitsOnly.length})`);
 						hasErrors = true;
 					} else {
 						hideErrorToast('phoneNumber');

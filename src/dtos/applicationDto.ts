@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ApplyForRoleSchema = z.object({
+export const JobApplicationRequestDtoSchema = z.object({
 	fullName: z
 		.string()
 		.min(1, "Full name is required")
@@ -21,9 +21,9 @@ export const ApplyForRoleSchema = z.object({
 		.refine(
 			(value) => {
 				const digitsOnly = value.replace(/\D/g, "");
-				return digitsOnly.length === 10;
+				return digitsOnly.length === 10 || digitsOnly.length === 11;
 			},
-			"Phone number must be exactly 10 digits (e.g., 0123 456789)"
+			"Phone number must be 10 or 11 digits (e.g., 0123 456789 or 07123 456789)"
 		),
 	email: z
 		.string()
@@ -38,7 +38,7 @@ export const ApplyForRoleSchema = z.object({
 		.optional(),
 });
 
-export type ApplyForRoleRequestDto = z.infer<typeof ApplyForRoleSchema>;
+export type JobApplicationRequestDto = z.infer<typeof JobApplicationRequestDtoSchema>;
 
 export interface JobApplicationResponseDto {
 	applicationId: number;
