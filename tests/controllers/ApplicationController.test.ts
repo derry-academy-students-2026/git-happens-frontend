@@ -15,7 +15,7 @@ function createResponse() {
 }
 
 function createRequest(id = "1", input = applicationInput) {
-	return { authenticatedUser: { token: "jwt-token", role: "user" }, originalUrl: `/jobs/job-roles/${id}/apply`, params: { id }, jobApplicationInput: input } as unknown as Request;
+	return { authenticatedUser: { token: "jwt-token", role: "user" }, originalUrl: `/applications/job-roles/${id}/apply`, params: { id }, jobApplicationInput: input } as unknown as Request;
 }
 
 function createController(getJobRoleById = vi.fn(), applyForRole = vi.fn()) {
@@ -54,16 +54,15 @@ describe("ApplicationController", () => {
 		await controller.submit(createRequest(), res);
 
 		expect(applyForRole).toHaveBeenCalledWith(1, applicationInput, "jwt-token");
-		expect(res.redirect).toHaveBeenCalledWith("/jobs/job-roles/1?applied=1");
+		expect(res.redirect).toHaveBeenCalledWith("/applications/job-roles/1?applied=1");
 	});
 
-	it("renders the shared conflict error returned by the service", async () => {
+	it("redirects to the job role page with a notice when the service reports a duplicate application", async () => {
 		const controller = createController(vi.fn(), vi.fn().mockRejectedValue(new AppError("You have already applied for this role", 409)));
 		const res = createResponse();
 
 		await controller.submit(createRequest(), res);
 
-		expect(res.status).toHaveBeenCalledWith(409);
-		expect(res.render).toHaveBeenCalledWith("pages/error.njk", { error: "You have already applied for this role" });
+		expect(res.redirect).toHaveBeenCalledWith("/applications/job-roles/1?alreadyApplied=1");
 	});
 });

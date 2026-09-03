@@ -83,7 +83,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/jobs", jobRoleRouter);
-app.use("/jobs", applicationRouter);
+app.use("/applications", applicationRouter);
 app.use("/auth", authRouter);
 
 Logger.debug(

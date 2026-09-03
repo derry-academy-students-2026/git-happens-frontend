@@ -17,7 +17,21 @@
 {% block content %}
 	{% if query.applied %}
 		<div class="auth-form__success" role="status">
-			<p>Thank you! Your application has been submitted successfully.</p>
+			<span class="auth-form__success-icon" aria-hidden="true">&#10003;</span>
+			<div>
+				<p class="auth-form__success-title">Application submitted!</p>
+				<p class="auth-form__success-body">Thank you for applying — we'll be in touch soon.</p>
+			</div>
+		</div>
+	{% endif %}
+
+	{% if query.alreadyApplied %}
+		<div class="auth-form__notice" role="status">
+			<span class="auth-form__notice-icon" aria-hidden="true">i</span>
+			<div>
+				<p class="auth-form__notice-title">You've already applied</p>
+				<p class="auth-form__notice-body">You can only submit one application per role.</p>
+			</div>
 		</div>
 	{% endif %}
 
@@ -67,7 +81,7 @@
 		{% if authenticatedUser.role === "user" and jobRole.status.statusName === "Open" and jobRole.numberOfOpenPositions > 0 %}
 			<a
 				class="button button--solid"
-				href="/jobs/job-roles/{{ jobRole.jobRoleId }}/apply"
+				href="/applications/job-roles/{{ jobRole.jobRoleId }}/apply"
 			>
 				Apply now
 			</a>

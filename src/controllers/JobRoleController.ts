@@ -108,6 +108,7 @@ export class JobRoleController {
 			res.render("pages/job-role-information.njk", {
 				jobRole,
 				authenticatedUser: req.authenticatedUser,
+				query: req.query,
 			});
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);

@@ -11,7 +11,7 @@ function createResponse() {
 	return res as unknown as Response & typeof res;
 }
 
-function createRequest(params: Record<string, string> = {}) {
+function createRequest(params: Record<string, string> = {}, query: Record<string, string> = {}) {
 	const originalUrl = params.id
 		? `/jobs/job-roles/${params.id}`
 		: "/jobs/job-roles";
@@ -19,6 +19,7 @@ function createRequest(params: Record<string, string> = {}) {
 		authenticatedUser: { token: "jwt-token", role: "user" },
 		originalUrl,
 		params,
+		query,
 	} as unknown as Request;
 }
 
@@ -72,6 +73,7 @@ describe("JobRoleController", () => {
 		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
 			jobRole,
 			authenticatedUser: { token: "jwt-token", role: "user" },
+			query: {},
 		});
 	});
 

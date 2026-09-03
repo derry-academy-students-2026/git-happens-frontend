@@ -57,8 +57,13 @@ export class ApplicationController {
 
 		try {
 			await this.applicationService.applyForRole(jobRoleId, req.jobApplicationInput, token);
-			res.redirect(`/jobs/job-roles/${jobRoleId}?applied=1`);
+			res.redirect(`/applications/job-roles/${jobRoleId}?applied=1`);
 		} catch (error) {
+			if (error instanceof AppError && error.statusCode === 409) {
+				Logger.warn(`Duplicate application rejected for role ${jobRoleId}`);
+				res.redirect(`/applications/job-roles/${jobRoleId}?alreadyApplied=1`);
+				return;
+			}
 			this.handleError(error, req, res, `submit application for role ${jobRoleId}`);
 		}
 	}

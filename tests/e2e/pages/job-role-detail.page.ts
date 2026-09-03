@@ -5,6 +5,9 @@ export class JobRoleDetailPage extends BasePage {
 	public readonly roleDetailsHeading: Locator;
 	public readonly jobSpecLink: Locator;
 	public readonly backToRolesLink: Locator;
+	public readonly applyNowLink: Locator;
+	public readonly successBanner: Locator;
+	public readonly alreadyAppliedNotice: Locator;
 
 	public constructor(page: Page) {
 		super(page);
@@ -15,5 +18,8 @@ export class JobRoleDetailPage extends BasePage {
 		this.backToRolesLink = page.getByRole("link", {
 			name: "Back to all roles",
 		});
+		this.applyNowLink = page.getByRole("link", { name: "Apply now" });
+		this.successBanner = page.locator(".auth-form__success");
+		this.alreadyAppliedNotice = page.locator(".auth-form__notice");
 	}
 }

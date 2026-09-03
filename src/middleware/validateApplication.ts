@@ -11,7 +11,7 @@ declare module "express-serve-static-core" {
 /**
  * Validates a job application form body before it reaches the application controller.
  *
- * @param req - Incoming `POST /jobs/job-roles/:id/apply` request.
+ * @param req - Incoming `POST /applications/job-roles/:id/apply` request.
  * @param res - Sends a safe validation error page when the input is invalid.
  * @param next - Continues with the parsed application input when validation succeeds.
  */
