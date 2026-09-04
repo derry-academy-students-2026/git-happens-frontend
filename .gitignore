@@ -49,6 +49,7 @@ test-results/
 playwright-report/
 tests/e2e/.features-gen/
 .playwright-mcp/
+playwright-mcp/
 
 # Terraform generated state, working directory, and local overrides
 infrastructure/.terraform/

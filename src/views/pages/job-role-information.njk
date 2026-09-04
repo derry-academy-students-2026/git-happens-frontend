@@ -41,6 +41,9 @@
 			<span class="job-status job-status--{{ jobRole.status.statusName | lower }}">
 				{{ jobRole.status.statusName }}
 			</span>
+			{% if isAdmin %}
+				<a class="button button--outline job-detail__edit-link" href="/jobs/job-roles/{{ jobRole.jobRoleId }}/edit">Edit role</a>
+			{% endif %}
 		</div>
 
 		<dl class="job-meta">
