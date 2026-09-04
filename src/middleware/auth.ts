@@ -7,6 +7,7 @@ export type AuthenticatedUser = {
 	token: string;
 	role: AuthRole;
 	email?: string;
+	userId?: string;
 };
 
 declare module "express-serve-static-core" {
@@ -16,6 +17,7 @@ declare module "express-serve-static-core" {
 }
 
 type JwtPayload = {
+	sub?: unknown;
 	role?: unknown;
 	email?: unknown;
 };
@@ -72,10 +74,13 @@ export function decodeAuthenticatedUser(token: string): AuthenticatedUser {
 		const parsedPayload = JSON.parse(decoded) as JwtPayload;
 		const email =
 			typeof parsedPayload.email === "string" ? parsedPayload.email : undefined;
+		const userId =
+			typeof parsedPayload.sub === "string" ? parsedPayload.sub : undefined;
 		return {
 			token,
 			role: parsedPayload.role === "admin" ? "admin" : "user",
 			...(email === undefined ? {} : { email }),
+			...(userId === undefined ? {} : { userId }),
 		};
 	} catch {
 		Logger.warn("JWT payload could not be decoded; defaulting role to user");
@@ -124,5 +129,26 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 	}
 
 	Logger.warn(`User attempted to access admin route ${req.originalUrl}`);
+	res.status(403).render("pages/error.njk", { error: "Forbidden" });
+}
+
+/**
+ * Allows only applicant accounts through to their personal application list.
+ *
+ * @param req - Authenticated request with decoded user role.
+ * @param res - Response used to render a forbidden error for administrators.
+ * @param next - Continues to the next middleware when the user is an applicant.
+ */
+export function requireApplicant(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): void {
+	if (req.authenticatedUser?.role === "user") {
+		next();
+		return;
+	}
+
+	Logger.warn(`Admin attempted to access applicant applications at ${req.originalUrl}`);
 	res.status(403).render("pages/error.njk", { error: "Forbidden" });
 }

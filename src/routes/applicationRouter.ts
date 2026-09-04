@@ -2,7 +2,7 @@ import { Router } from "express";
 import { ApplicationController } from "../controllers/ApplicationController.js";
 import { JobRoleController } from "../controllers/JobRoleController.js";
 import Logger from "../lib/logger.js";
-import { requireJwt } from "../middleware/auth.js";
+import { requireApplicant, requireJwt } from "../middleware/auth.js";
 import { validateJobApplication } from "../middleware/validateApplication.js";
 import { ApplicationServiceImpl } from "../services/applicationService.js";
 import { JobRoleService } from "../services/JobRoleService.js";
@@ -15,6 +15,11 @@ const controller = new ApplicationController(
 );
 // Reused so Cancel links and the post-submit redirect can stay under /applications.
 const jobRoleController = new JobRoleController(jobRoleService);
+
+applicationRouter.get("/", requireJwt, requireApplicant, (req, res) => {
+	Logger.debug("GET /applications");
+	controller.getAll(req, res);
+});
 
 applicationRouter.get("/job-roles/:id", requireJwt, (req, res) => {
 	Logger.debug(`GET /applications/job-roles/${req.params.id}`);

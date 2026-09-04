@@ -53,3 +53,13 @@ export interface JobApplicationResponseDto {
 	applicationStatus: string;
 	createdAt: string;
 }
+
+/** Application summary returned by the authenticated user's application list endpoint. */
+export interface JobApplicationListItemDto {
+	applicationId: number;
+	jobRoleId: number;
+	roleName: string;
+	location: string;
+	applicationStatus: string;
+	createdAt: string;
+}
