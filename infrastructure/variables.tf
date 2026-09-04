@@ -35,3 +35,33 @@ variable "tags" {
     managed_by = "terraform"
   }
 }
+
+variable "key_vault_name_prefix" {
+  description = "Short prefix for the Key Vault name (a random 8-character hex suffix is appended; total name must stay within Azure's 24-character limit)."
+  type        = string
+  default     = "kv-ghf"
+}
+
+variable "container_app_environment_name" {
+  description = "Name of the shared Container App Environment, created and owned by the backend's Terraform."
+  type        = string
+  default     = "git-happens-dev-environment"
+}
+
+variable "container_app_environment_resource_group_name" {
+  description = "Resource group containing the shared Container App Environment."
+  type        = string
+  default     = "git-happens-dev"
+}
+
+variable "acr_login_server" {
+  description = "Login server for the shared Azure Container Registry."
+  type        = string
+  default     = "acraiacademy26.azurecr.io"
+}
+
+variable "container_image" {
+  description = "Fully qualified image reference for the frontend Container App."
+  type        = string
+  default     = "acraiacademy26.azurecr.io/git-happens-frontend:latest"
+}

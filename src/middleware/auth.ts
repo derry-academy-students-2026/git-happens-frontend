@@ -6,6 +6,7 @@ export type AuthRole = "user" | "admin";
 export type AuthenticatedUser = {
 	token: string;
 	role: AuthRole;
+	email?: string;
 };
 
 declare module "express-serve-static-core" {
@@ -16,6 +17,7 @@ declare module "express-serve-static-core" {
 
 type JwtPayload = {
 	role?: unknown;
+	email?: unknown;
 };
 
 /**
@@ -54,7 +56,7 @@ export function sanitizeReturnTo(returnTo: unknown): string {
 }
 
 /**
- * Decodes the JWT payload role without logging or trusting sensitive token contents.
+ * Decodes the JWT payload role and email without logging or trusting sensitive token contents.
  *
  * @param token - JWT token from the session cookie.
  * @returns Authenticated user details, defaulting unknown roles to user.
@@ -68,9 +70,12 @@ export function decodeAuthenticatedUser(token: string): AuthenticatedUser {
 	try {
 		const decoded = Buffer.from(payload, "base64url").toString("utf8");
 		const parsedPayload = JSON.parse(decoded) as JwtPayload;
+		const email =
+			typeof parsedPayload.email === "string" ? parsedPayload.email : undefined;
 		return {
 			token,
 			role: parsedPayload.role === "admin" ? "admin" : "user",
+			...(email === undefined ? {} : { email }),
 		};
 	} catch {
 		Logger.warn("JWT payload could not be decoded; defaulting role to user");

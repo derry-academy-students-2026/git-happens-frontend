@@ -9,6 +9,7 @@ import {
 	decodeAuthenticatedUser,
 	getJwtFromCookie,
 } from "./middleware/auth.js";
+import applicationRouter from "./routes/applicationRouter.js";
 import authRouter from "./routes/authRouter.js";
 import jobRoleRouter from "./routes/jobRoleRouter.js";
 
@@ -82,6 +83,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/jobs", jobRoleRouter);
+app.use("/applications", applicationRouter);
 app.use("/auth", authRouter);
 
 Logger.debug(

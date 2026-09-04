@@ -3,58 +3,70 @@ import { describe, expect, it, vi } from "vitest";
 import { JobRoleController } from "../../src/controllers/JobRoleController.js";
 import type { JobRoleService } from "../../src/services/JobRoleService.js";
 
-const jobRoles = [
-	{
-		jobRoleId: 1,
-		roleName: "Frontend Developer",
-		location: "Derry",
-		capability: { capabilityId: 3, capabilityName: "Engineering" },
-		band: { bandId: 2, bandName: "Associate" },
-		closingDate: "2026-09-04T00:00:00.000Z",
-		status: { statusId: 1, statusName: "Open" },
-		description: "Build and maintain our customer-facing web applications.",
-		responsibilities: "Write code. Review pull requests. Fix bugs.",
-		sharepointUrl: "https://kainos.sharepoint.com/job-specs/1",
-		numberOfOpenPositions: 2,
-	},
-];
+const jobRoles = [{ jobRoleId: 1, roleName: "Frontend Developer" }];
+
+const pagination = {
+	jobRoles,
+	page: 1,
+	pageSize: 10,
+	totalCount: 1,
+	totalPages: 1,
+};
 
 function createResponse() {
-	const res = {
-		clearCookie: vi.fn(),
-		render: vi.fn(),
-		status: vi.fn(),
-		redirect: vi.fn(),
-	};
+	const res = { clearCookie: vi.fn(), render: vi.fn(), status: vi.fn(), redirect: vi.fn() };
 	res.status.mockReturnValue(res);
 	return res as unknown as Response & typeof res;
 }
 
-function createService(getAllJobRoles: JobRoleService["getAllJobRoles"]) {
-	return { getAllJobRoles } as JobRoleService;
-}
-
-function createAuthenticatedRequest(params: Record<string, string> = {}) {
+function createRequest(
+	params: Record<string, string> = {},
+	query: Record<string, string> = {},
+) {
+	const originalUrl = params.id
+		? `/jobs/job-roles/${params.id}`
+		: "/jobs/job-roles";
 	return {
 		authenticatedUser: { token: "jwt-token", role: "user" },
-		originalUrl: "/jobs/job-roles",
+		originalUrl,
 		params,
+		query,
 	} as unknown as Request;
+}
+
+function createService(getAllJobRoles: ReturnType<typeof vi.fn>) {
+	return { getAllJobRoles } as unknown as JobRoleService;
 }
 
 describe("JobRoleController.getAll", () => {
 	it("renders the job role list with the roles from the service", async () => {
-		const getAllJobRoles = vi.fn().mockResolvedValue(jobRoles);
+		const getAllJobRoles = vi.fn().mockResolvedValue(pagination);
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
-		await controller.getAll(createAuthenticatedRequest(), res);
+		await controller.getAll(createRequest(), res);
 
-		expect(getAllJobRoles).toHaveBeenCalledWith("jwt-token");
+		expect(getAllJobRoles).toHaveBeenCalledWith("jwt-token", 1);
 		expect(res.render).toHaveBeenCalledWith("pages/job-role-list.njk", {
 			jobRoles,
+			pagination,
 		});
 		expect(res.status).not.toHaveBeenCalled();
+	});
+
+	it("passes the requested page to the service", async () => {
+		const getAllJobRoles = vi
+			.fn()
+			.mockResolvedValue({ ...pagination, page: 2 });
+		const controller = new JobRoleController(createService(getAllJobRoles));
+		const res = createResponse();
+
+		await controller.getAll(
+			createRequest({}, { page: "2" }),
+			res,
+		);
+
+		expect(getAllJobRoles).toHaveBeenCalledWith("jwt-token", 2);
 	});
 
 	it("renders the error page with a 500 when the service rejects", async () => {
@@ -62,7 +74,7 @@ describe("JobRoleController.getAll", () => {
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
-		await controller.getAll(createAuthenticatedRequest(), res);
+		await controller.getAll(createRequest(), res);
 
 		expect(res.status).toHaveBeenCalledWith(500);
 		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
@@ -75,7 +87,7 @@ describe("JobRoleController.getAll", () => {
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
-		await controller.getAll(createAuthenticatedRequest(), res);
+		await controller.getAll(createRequest(), res);
 
 		expect(res.status).toHaveBeenCalledWith(500);
 		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
@@ -90,7 +102,7 @@ describe("JobRoleController.getAll", () => {
 		const controller = new JobRoleController(createService(getAllJobRoles));
 		const res = createResponse();
 
-		await controller.getAll(createAuthenticatedRequest(), res);
+		await controller.getAll(createRequest(), res);
 
 		expect(res.clearCookie).toHaveBeenCalledWith("jwt", { path: "/" });
 		expect(res.redirect).toHaveBeenCalledWith(
@@ -99,35 +111,70 @@ describe("JobRoleController.getAll", () => {
 	});
 });
 
-function createRequest(id: string) {
-	return createAuthenticatedRequest({ id });
-}
-
 describe("JobRoleController.getById", () => {
-	it("renders the information page with the role from the service", async () => {
+	it("renders a job role's information", async () => {
+		const jobRole = { ...jobRoles[0], status: { statusName: "Open" } };
+		const getJobRoleById = vi.fn().mockResolvedValue(jobRole);
+		const controller = new JobRoleController({ getJobRoleById } as unknown as JobRoleService);
+		const res = createResponse();
+
+		await controller.getById(createRequest({ id: "1" }), res);
+
+		expect(getJobRoleById).toHaveBeenCalledWith(1, "jwt-token");
+		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
+			jobRole,
+			authenticatedUser: { token: "jwt-token", role: "user" },
+			query: {},
+			backHref: "/jobs/job-roles",
+		});
+	});
+
+	it("builds a back link to the list page the role was viewed from", async () => {
 		const getJobRoleById = vi.fn().mockResolvedValue(jobRoles[0]);
 		const controller = new JobRoleController({
 			getJobRoleById,
 		} as unknown as JobRoleService);
 		const res = createResponse();
 
-		await controller.getById(createRequest("1"), res);
+		await controller.getById(
+			createRequest({ id: "1" }, { page: "3" }),
+			res,
+		);
 
-		expect(getJobRoleById).toHaveBeenCalledWith(1, "jwt-token");
 		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
 			jobRole: jobRoles[0],
+			authenticatedUser: { token: "jwt-token", role: "user" },
+			query: { page: "3" },
+			backHref: "/jobs/job-roles?page=3",
 		});
-		expect(res.status).not.toHaveBeenCalled();
 	});
 
-	it("renders a 400 without calling the service when the id is not a number", async () => {
-		const getJobRoleById = vi.fn();
+	it("ignores an invalid page query when building the back link", async () => {
+		const getJobRoleById = vi.fn().mockResolvedValue(jobRoles[0]);
 		const controller = new JobRoleController({
 			getJobRoleById,
 		} as unknown as JobRoleService);
 		const res = createResponse();
 
-		await controller.getById(createRequest("abc"), res);
+		await controller.getById(
+			createRequest({ id: "1" }, { page: "nope" }),
+			res,
+		);
+
+		expect(res.render).toHaveBeenCalledWith("pages/job-role-information.njk", {
+			jobRole: jobRoles[0],
+			authenticatedUser: { token: "jwt-token", role: "user" },
+			query: { page: "nope" },
+			backHref: "/jobs/job-roles",
+		});
+	});
+
+	it("renders a 400 without calling the service when the id is not a number", async () => {
+		const getJobRoleById = vi.fn();
+		const controller = new JobRoleController({ getJobRoleById } as unknown as JobRoleService);
+		const res = createResponse();
+
+		await controller.getById(createRequest({ id: "invalid" }), res);
 
 		expect(getJobRoleById).not.toHaveBeenCalled();
 		expect(res.status).toHaveBeenCalledWith(400);
@@ -136,16 +183,13 @@ describe("JobRoleController.getById", () => {
 		});
 	});
 
-	it("renders a 404 when the service reports the role is missing", async () => {
-		const getJobRoleById = vi
-			.fn()
-			.mockRejectedValue(new Error("Job role not found"));
+	it("renders a not-found error when the requested role does not exist", async () => {
 		const controller = new JobRoleController({
-			getJobRoleById,
+			getJobRoleById: vi.fn().mockRejectedValue(new Error("Job role not found")),
 		} as unknown as JobRoleService);
 		const res = createResponse();
 
-		await controller.getById(createRequest("99"), res);
+		await controller.getById(createRequest({ id: "99" }), res);
 
 		expect(res.status).toHaveBeenCalledWith(404);
 		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
@@ -153,16 +197,13 @@ describe("JobRoleController.getById", () => {
 		});
 	});
 
-	it("renders a 500 when the service fails for any other reason", async () => {
-		const getJobRoleById = vi
-			.fn()
-			.mockRejectedValue(new Error("Backend server error"));
+	it("renders a generic error page when retrieving a role fails", async () => {
 		const controller = new JobRoleController({
-			getJobRoleById,
+			getJobRoleById: vi.fn().mockRejectedValue(new Error("Service unavailable")),
 		} as unknown as JobRoleService);
 		const res = createResponse();
 
-		await controller.getById(createRequest("1"), res);
+		await controller.getById(createRequest({ id: "1" }), res);
 
 		expect(res.status).toHaveBeenCalledWith(500);
 		expect(res.render).toHaveBeenCalledWith("pages/error.njk", {
@@ -170,20 +211,15 @@ describe("JobRoleController.getById", () => {
 		});
 	});
 
-	it("clears the jwt and redirects when fetching detail requires authentication", async () => {
-		const getJobRoleById = vi
-			.fn()
-			.mockRejectedValue(new Error("Authentication required"));
+	it("clears the session when retrieving a role rejects the token", async () => {
 		const controller = new JobRoleController({
-			getJobRoleById,
+			getJobRoleById: vi.fn().mockRejectedValue(new Error("Authentication required")),
 		} as unknown as JobRoleService);
 		const res = createResponse();
 
-		await controller.getById(createRequest("1"), res);
+		await controller.getById(createRequest({ id: "1" }), res);
 
 		expect(res.clearCookie).toHaveBeenCalledWith("jwt", { path: "/" });
-		expect(res.redirect).toHaveBeenCalledWith(
-			"/auth/login?returnTo=%2Fjobs%2Fjob-roles",
-		);
+		expect(res.redirect).toHaveBeenCalledWith("/auth/login?returnTo=%2Fjobs%2Fjob-roles%2F1");
 	});
 });

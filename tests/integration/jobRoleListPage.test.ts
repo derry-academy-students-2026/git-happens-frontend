@@ -40,13 +40,21 @@ const apiResponse = [
 	},
 ];
 
+const paginatedApiResponse = {
+	jobRoles: apiResponse,
+	page: 1,
+	pageSize: 10,
+	totalCount: 13,
+	totalPages: 2,
+};
+
 describe("job role list page", () => {
 	beforeEach(() => {
 		get.mockReset();
 	});
 
 	it("flattens the nested capability and band onto the page", async () => {
-		get.mockResolvedValue({ data: apiResponse });
+		get.mockResolvedValue({ data: paginatedApiResponse });
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -63,7 +71,7 @@ describe("job role list page", () => {
 	});
 
 	it("renders the closing date without the ISO time portion", async () => {
-		get.mockResolvedValue({ data: apiResponse });
+		get.mockResolvedValue({ data: paginatedApiResponse });
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -74,7 +82,7 @@ describe("job role list page", () => {
 	});
 
 	it("badges each role using the status casing the API sends", async () => {
-		get.mockResolvedValue({ data: apiResponse });
+		get.mockResolvedValue({ data: paginatedApiResponse });
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -86,7 +94,7 @@ describe("job role list page", () => {
 	});
 
 	it("lists every role the API returns, open or closed", async () => {
-		get.mockResolvedValue({ data: apiResponse });
+		get.mockResolvedValue({ data: paginatedApiResponse });
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -94,11 +102,57 @@ describe("job role list page", () => {
 
 		expect(response.text).toContain("Executive Assistant");
 		expect(response.text).toContain("Senior Software Engineer");
-		expect(response.text).toContain("2 roles");
+		expect(response.text).toContain("13 roles");
+	});
+
+	it("renders pagination links and requests the next page", async () => {
+		get.mockResolvedValue({ data: paginatedApiResponse });
+
+		const firstPage = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", ["jwt=test-token"]);
+
+		expect(firstPage.text).toContain('href="/jobs/job-roles?page=2"');
+		expect(firstPage.text).toContain("Page 1 of 2");
+		expect(firstPage.text).toContain('aria-disabled="true">First</span>');
+
+		get.mockResolvedValue({
+			data: { ...paginatedApiResponse, page: 2, jobRoles: [apiResponse[1]] },
+		});
+		const lastPage = await request(app)
+			.get("/jobs/job-roles?page=2")
+			.set("Cookie", ["jwt=test-token"]);
+
+		expect(get).toHaveBeenLastCalledWith("job-roles", {
+			headers: { Authorization: "Bearer test-token" },
+			params: { page: 2 },
+		});
+		expect(lastPage.text).toContain('href="/jobs/job-roles">First</a>');
+		expect(lastPage.text).toContain('aria-disabled="true">Next</span>');
+		expect(lastPage.text).toContain('aria-disabled="true">Last</span>');
+	});
+
+	it("links roles on page 2 back through the current page", async () => {
+		get.mockResolvedValue({
+			data: { ...paginatedApiResponse, page: 2, jobRoles: [apiResponse[1]] },
+		});
+
+		const response = await request(app)
+			.get("/jobs/job-roles?page=2")
+			.set("Cookie", ["jwt=test-token"]);
+
+		expect(response.text).toContain('href="/jobs/job-roles/2?page=2"');
 	});
 
 	it("renders the empty state when the API returns no roles", async () => {
-		get.mockResolvedValue({ data: [] });
+		get.mockResolvedValue({
+			data: {
+				...paginatedApiResponse,
+				jobRoles: [],
+				totalCount: 0,
+				totalPages: 1,
+			},
+		});
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
