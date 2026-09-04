@@ -1,5 +1,40 @@
 import { z } from "zod";
 
+export interface CapabilityDTO {
+	capabilityId: number;
+	capabilityName: string;
+}
+
+export interface BandDTO {
+	bandId: number;
+	bandName: string;
+}
+
+export interface JobRoleDTO {
+	jobRoleId: number;
+	roleName: string;
+	location: string;
+	capability: CapabilityDTO;
+	band: BandDTO;
+	closingDate: string;
+	status: {
+		statusId: number;
+		statusName: string;
+	};
+	description: string;
+	responsibilities: string;
+	sharepointUrl: string;
+	numberOfOpenPositions: number;
+}
+
+export interface PaginatedJobRoles {
+	jobRoles: JobRoleDTO[];
+	page: number;
+	pageSize: number;
+	totalCount: number;
+	totalPages: number;
+}
+
 const requiredText = (label: string) =>
 	z.string().trim().min(1, `${label} is required`);
 
@@ -37,3 +72,6 @@ export const CreateJobRoleSchema = z.object({
 	responsibilities: requiredText("Responsibilities"),
 	numberOfOpenPositions: positiveInteger("Number of open positions"),
 });
+
+/** Body accepted by `POST /job-roles`, derived from the schema so both stay in sync. */
+export type CreateJobRoleRequestDTO = z.infer<typeof CreateJobRoleSchema>;

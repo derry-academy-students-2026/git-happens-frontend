@@ -1,13 +1,14 @@
 import axios from "axios";
 import apiClient from "../config/apiClient.js";
-import { createApiError, createNetworkError } from "../errors/customErrors.js";
-import Logger from "../lib/logger.js";
-import type { JobRoleDTO, PaginatedJobRoles } from "../models/jobRoleDTO.js";
 import type {
 	BandDTO,
 	CapabilityDTO,
 	CreateJobRoleRequestDTO,
-} from "../models/jobRoleModel.js";
+	JobRoleDTO,
+	PaginatedJobRoles,
+} from "../dtos/jobRoleDto.js";
+import { createApiError, createNetworkError } from "../errors/customErrors.js";
+import Logger from "../lib/logger.js";
 
 type UnauthorizedResponse = {
 	message?: string;
