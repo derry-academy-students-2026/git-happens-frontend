@@ -15,6 +15,9 @@
 			<a href="/jobs" {% if currentPath == "/jobs" %}aria-current="page"{% endif %}>Home</a>
 			<a href="/jobs/job-roles" {% if currentPath == "/jobs/job-roles" %}aria-current="page"{% endif %}>Job roles</a>
 			{% if isAuthenticated %}
+				{% if not isAdmin %}
+				<a href="/applications" {% if currentPath == "/applications" %}aria-current="page"{% endif %}>My applications</a>
+				{% endif %}
 				<form action="/auth/logout" method="post" class="site-nav__logout-form">
 					<button type="submit" class="site-nav__logout">Log out</button>
 				</form>

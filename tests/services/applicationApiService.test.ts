@@ -137,3 +137,20 @@ describe("ApplicationServiceImpl.applyForRole", () => {
 		).rejects.toThrow("Unable to reach the server. Please try again.");
 	});
 });
+
+describe("ApplicationServiceImpl.getApplicationsForUser", () => {
+	beforeEach(() => {
+		post.mockReset();
+	});
+
+	it("gets the authenticated user's applications with a bearer token", async () => {
+		const get = vi.mocked(apiClient.get);
+		get.mockResolvedValue({ data: [] });
+
+		await applicationService.getApplicationsForUser("7", "jwt-token");
+
+		expect(get).toHaveBeenCalledWith("applications/users/7", {
+			headers: { Authorization: "Bearer jwt-token" },
+		});
+	});
+});

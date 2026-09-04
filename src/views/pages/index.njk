@@ -14,6 +14,9 @@
 
 			<div class="masthead__actions">
 				<a class="button button--solid" href="/jobs/job-roles">Browse open roles</a>
+				{% if isAuthenticated and not isAdmin %}
+					<a class="button button--ghost" href="/applications">My applications</a>
+				{% endif %}
 				<a class="button button--ghost" href="https://careers.kainos.com/gb/en" target="_blank" rel="noopener noreferrer">Life at Kainos</a>
 			</div>
 		</div>

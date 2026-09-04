@@ -11,6 +11,35 @@ export class ApplicationController {
 		private applicationService: ApplicationService,
 	) {}
 
+	/**
+	 * Renders the current authenticated user's job application list.
+	 *
+	 * @param req - Authenticated `GET /applications` request with a JWT subject.
+	 * @param res - Renders the application list, error page, or redirects to login.
+	 * @returns Resolves once the response has been rendered or redirected.
+	 */
+	async getAll(req: Request, res: Response): Promise<void> {
+		const token = req.authenticatedUser?.token;
+		const userId = req.authenticatedUser?.userId;
+		if (!token || !userId) {
+			Logger.warn("Application list requested without a usable JWT subject");
+			res.clearCookie("jwt", { path: "/" });
+			res.redirect(`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+			return;
+		}
+
+		try {
+			const applications = await this.applicationService.getApplicationsForUser(
+				userId,
+				token,
+			);
+			Logger.debug(`Rendering ${applications.length} applications for user ${userId}`);
+			res.render("pages/application-list.njk", { applications });
+		} catch (error) {
+			this.handleError(error, req, res, `render applications for user ${userId}`);
+		}
+	}
+
 	/** Renders the application form for an open job role. */
 	async showForm(req: Request, res: Response): Promise<void> {
 		const jobRoleId = Number(req.params.id);

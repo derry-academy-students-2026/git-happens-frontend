@@ -78,6 +78,16 @@ describe("jobRouter", () => {
 		expect(response.text).not.toContain("Log out");
 	});
 
+	it("links authenticated users to their applications from the home page", async () => {
+		const response = await request(app)
+			.get("/jobs")
+			.set("Cookie", ["jwt=test-token"]);
+
+		expect(response.status).toBe(200);
+		expect(response.text).toContain('href="/applications"');
+		expect(response.text).toContain("My applications");
+	});
+
 	it("renders the roles returned by the service", async () => {
 		getAllJobRoles.mockResolvedValue(paginatedJobRoles);
 

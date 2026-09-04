@@ -15,17 +15,38 @@ function createResponse() {
 }
 
 function createRequest(id = "1", input = applicationInput) {
-	return { authenticatedUser: { token: "jwt-token", role: "user" }, originalUrl: `/applications/job-roles/${id}/apply`, params: { id }, jobApplicationInput: input } as unknown as Request;
+	return { authenticatedUser: { token: "jwt-token", role: "user", userId: "7" }, originalUrl: `/applications/job-roles/${id}/apply`, params: { id }, jobApplicationInput: input } as unknown as Request;
 }
 
-function createController(getJobRoleById = vi.fn(), applyForRole = vi.fn()) {
+function createController(
+	getJobRoleById = vi.fn(),
+	applyForRole = vi.fn(),
+	getApplicationsForUser = vi.fn(),
+) {
 	return new ApplicationController(
 		{ getJobRoleById } as unknown as JobRoleService,
-		{ applyForRole } as unknown as ApplicationService,
+		{ applyForRole, getApplicationsForUser } as unknown as ApplicationService,
 	);
 }
 
 describe("ApplicationController", () => {
+	it("renders applications belonging to the authenticated user", async () => {
+		const applications = [{ applicationId: 10, roleName: "Software Engineer" }];
+		const getApplicationsForUser = vi.fn().mockResolvedValue(applications);
+		const controller = createController(vi.fn(), vi.fn(), getApplicationsForUser);
+		const res = createResponse();
+
+		await controller.getAll(
+			{ ...createRequest(), originalUrl: "/applications" } as unknown as Request,
+			res,
+		);
+
+		expect(getApplicationsForUser).toHaveBeenCalledWith("7", "jwt-token");
+		expect(res.render).toHaveBeenCalledWith("pages/application-list.njk", {
+			applications,
+		});
+	});
+
 	it("renders an application form for an open role", async () => {
 		const getJobRoleById = vi.fn().mockResolvedValue(openRole);
 		const controller = createController(getJobRoleById);

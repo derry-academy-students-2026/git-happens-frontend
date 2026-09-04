@@ -1,0 +1,48 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}My applications{% endblock %}
+
+{% block masthead %}
+	<section class="masthead masthead--compact">
+		<div class="shell">
+			<span class="section-label">Candidate portal</span>
+			<h1 class="display display--page">My applications</h1>
+			<p class="lede">Track the progress of every role you have applied for.</p>
+		</div>
+	</section>
+{% endblock %}
+
+{% block content %}
+	<div class="results-bar">
+		<h2 class="display display--section">Application status</h2>
+		<span class="results-bar__count">{{ applications.length }} application{% if applications.length != 1 %}s{% endif %}</span>
+	</div>
+
+	{% if applications.length %}
+		<ul class="job-list" aria-label="Your job applications">
+			{% for application in applications %}
+				<li class="application-item">
+					<div>
+						<h3 class="job-item__title">{{ application.roleName }}</h3>
+						<p class="application-item__location">{{ application.location }}</p>
+					</div>
+					<dl class="application-meta">
+						<div>
+							<dt>Applied</dt>
+							<dd>{{ application.createdAt | truncate(10, true, "") }}</dd>
+						</div>
+						<div>
+							<dt>Status</dt>
+							<dd><span class="application-status">{{ application.applicationStatus | replace("_", " ") }}</span></dd>
+						</div>
+					</dl>
+				</li>
+			{% endfor %}
+		</ul>
+	{% else %}
+		<div class="empty-state">
+			<p>You have not submitted any job applications yet.</p>
+			<a class="button button--ink" href="/jobs/job-roles">Browse open roles</a>
+		</div>
+	{% endif %}
+{% endblock %}
