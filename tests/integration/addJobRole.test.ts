@@ -495,7 +495,11 @@ describe("edit job role workflow", () => {
 			.post("/jobs/job-roles/9/edit")
 			.set("Cookie", [`jwt=${adminToken}`])
 			.type("form")
-			.send({ ...validSubmission, roleName: "Senior Backend Developer" });
+			.send({
+				...validSubmission,
+				roleName: "Senior Backend Developer",
+				numberOfOpenPositions: "3",
+			});
 
 		expect(put).toHaveBeenCalledWith(
 			"job-roles/9",
@@ -504,7 +508,7 @@ describe("edit job role workflow", () => {
 				roleName: "Senior Backend Developer",
 				capabilityId: 3,
 				bandId: 2,
-				numberOfOpenPositions: 1,
+				numberOfOpenPositions: 3,
 			},
 			{ headers: { Authorization: `Bearer ${adminToken}` } },
 		);
