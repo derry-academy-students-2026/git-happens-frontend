@@ -1,7 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ZodError } from "zod";
-import { CreateJobRoleSchema } from "../dtos/jobRoleDto.js";
-import type { CreateJobRoleRequestDTO } from "../models/jobRoleModel.js";
+import {
+	CreateJobRoleSchema,
+	type CreateJobRoleRequestDTO,
+} from "../dtos/jobRoleDto.js";
 
 declare module "express-serve-static-core" {
 	interface Request {

@@ -51,6 +51,14 @@ const jobRoles = [
 	},
 ];
 
+const paginatedJobRoles = {
+	jobRoles,
+	page: 1,
+	pageSize: 10,
+	totalCount: jobRoles.length,
+	totalPages: 1,
+};
+
 describe("jobRouter", () => {
 	beforeEach(() => {
 		getAllJobRoles.mockReset();
@@ -71,7 +79,7 @@ describe("jobRouter", () => {
 	});
 
 	it("renders the roles returned by the service", async () => {
-		getAllJobRoles.mockResolvedValue(jobRoles);
+		getAllJobRoles.mockResolvedValue(paginatedJobRoles);
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -88,7 +96,7 @@ describe("jobRouter", () => {
 	});
 
 	it("shows the open or closed status for every role", async () => {
-		getAllJobRoles.mockResolvedValue(jobRoles);
+		getAllJobRoles.mockResolvedValue(paginatedJobRoles);
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -101,7 +109,13 @@ describe("jobRouter", () => {
 	});
 
 	it("renders an empty state when there are no open roles", async () => {
-		getAllJobRoles.mockResolvedValue([]);
+		getAllJobRoles.mockResolvedValue({
+			jobRoles: [],
+			page: 1,
+			pageSize: 10,
+			totalCount: 0,
+			totalPages: 1,
+		});
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -125,7 +139,7 @@ describe("jobRouter", () => {
 	});
 
 	it("links each listed role to its information page", async () => {
-		getAllJobRoles.mockResolvedValue(jobRoles);
+		getAllJobRoles.mockResolvedValue(paginatedJobRoles);
 
 		const response = await request(app)
 			.get("/jobs/job-roles")
@@ -160,6 +174,18 @@ describe("jobRouter", () => {
 			'href="https://kainos.sharepoint.com/job-specs/1"',
 		);
 		expect(response.text).toContain("2");
+	});
+
+	it("keeps a link back to the list page the role was viewed from", async () => {
+		getJobRoleById.mockResolvedValue(jobRoles[0]);
+
+		const response = await request(app)
+			.get("/jobs/job-roles/1?page=2")
+			.set("Cookie", ["jwt=test-token"]);
+
+		expect(response.text).toContain(
+			'href="/jobs/job-roles?page=2">Back to all roles</a>',
+		);
 	});
 
 	it("renders a 400 when the id is not a number", async () => {

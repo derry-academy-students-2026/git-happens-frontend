@@ -33,7 +33,7 @@ export class JobRoleController {
 	 * Renders the job role list page.
 	 *
 	 * @param req - The authenticated `GET /jobs/job-roles` request.
-	 * @param res - Renders `pages/job-role-list.njk` with a `jobRoles` array, or
+	 * @param res - Renders `pages/job-role-list.njk` with the current role page, or
 	 * `pages/error.njk` with a 500 on failure.
 	 * @returns Resolves once a response has been rendered.
 	 * @remarks Never rejects. Service failures are logged and rendered as a 500 error page.
@@ -49,9 +49,19 @@ export class JobRoleController {
 				return;
 			}
 
-			const jobRoles = await this.service.getAllJobRoles(token);
-			Logger.debug(`Rendering job role list of ${jobRoles.length} roles`);
-			res.render("pages/job-role-list.njk", { jobRoles });
+			const requestedPage = Number(req.query.page);
+			const page =
+				Number.isInteger(requestedPage) && requestedPage > 0
+					? requestedPage
+					: 1;
+			const pagination = await this.service.getAllJobRoles(token, page);
+			Logger.debug(
+				`Rendering job role page ${pagination.page} with ${pagination.jobRoles.length} roles`,
+			);
+			res.render("pages/job-role-list.njk", {
+				jobRoles: pagination.jobRoles,
+				pagination,
+			});
 		} catch (error) {
 			Logger.error(
 				`Failed to render the job role list: ${error instanceof Error ? error.message : String(error)}`,
@@ -73,8 +83,9 @@ export class JobRoleController {
 	/**
 	 * Renders the information page for a single job role.
 	 *
-	 * @param req - The `GET /jobs/job-roles/:id` request, whose `id` param selects the role.
-	 * @param res - Renders `pages/job-role-information.njk` with a `jobRole`, or
+	 * @param req - The `GET /jobs/job-roles/:id` request, whose `id` param selects the role
+	 * and whose optional `page` query param is the list page to return to.
+	 * @param res - Renders `pages/job-role-information.njk` with a `jobRole` and `backHref`, or
 	 * `pages/error.njk` with a 400, 404 or 500 on failure.
 	 * @returns Resolves once a response has been rendered.
 	 * @remarks Never rejects. Invalid ids and service failures are rendered as error pages.
@@ -90,6 +101,12 @@ export class JobRoleController {
 				.render("pages/error.njk", { error: "That job role id is not valid" });
 			return;
 		}
+
+		const requestedPage = Number(req.query.page);
+		const backHref =
+			Number.isInteger(requestedPage) && requestedPage > 1
+				? `/jobs/job-roles?page=${requestedPage}`
+				: "/jobs/job-roles";
 
 		try {
 			const token = req.authenticatedUser?.token;
@@ -109,6 +126,7 @@ export class JobRoleController {
 				jobRole,
 				authenticatedUser: req.authenticatedUser,
 				query: req.query,
+				backHref
 			});
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);

@@ -46,13 +46,21 @@ function axiosErrorWithStatus(status: number, data: object = {}) {
 	});
 }
 
+const paginatedResponse = {
+	jobRoles: [apiJobRole],
+	page: 1,
+	pageSize: 10,
+	totalCount: 1,
+	totalPages: 1,
+};
+
 describe("JobRoleService.getAllJobRoles", () => {
 	beforeEach(() => {
 		get.mockReset();
 	});
 
 	it("requests the job roles endpoint", async () => {
-		get.mockResolvedValue({ data: [] });
+		get.mockResolvedValue({ data: paginatedResponse });
 
 		await new JobRoleService().getAllJobRoles("jwt-token");
 
@@ -62,31 +70,48 @@ describe("JobRoleService.getAllJobRoles", () => {
 	});
 
 	it("returns the API response untouched", async () => {
-		get.mockResolvedValue({ data: [apiJobRole] });
+		get.mockResolvedValue({ data: paginatedResponse });
 
 		const result = await new JobRoleService().getAllJobRoles("jwt-token");
 
-		expect(result).toEqual([apiJobRole]);
+		expect(result).toEqual(paginatedResponse);
 	});
 
 	it("returns closed roles as well as open ones", async () => {
 		get.mockResolvedValue({
-			data: [
-				apiJobRole,
-				{
-					...apiJobRole,
-					jobRoleId: 2,
-					status: { statusId: 2, statusName: "Closed" },
-				},
-			],
+			data: {
+				...paginatedResponse,
+				jobRoles: [
+					apiJobRole,
+					{
+						...apiJobRole,
+						jobRoleId: 2,
+						status: { statusId: 2, statusName: "Closed" },
+					},
+				],
+				totalCount: 2,
+			},
 		});
 
 		const result = await new JobRoleService().getAllJobRoles("jwt-token");
 
-		expect(result.map((role) => role.status.statusName)).toEqual([
+		expect(result.jobRoles.map((role) => role.status.statusName)).toEqual([
 			"Open",
 			"Closed",
 		]);
+	});
+
+	it("requests later pages with a page query parameter", async () => {
+		get.mockResolvedValue({
+			data: { ...paginatedResponse, page: 2, totalCount: 11, totalPages: 2 },
+		});
+
+		await new JobRoleService().getAllJobRoles("jwt-token", 2);
+
+		expect(get).toHaveBeenCalledWith("job-roles", {
+			headers: { Authorization: "Bearer jwt-token" },
+			params: { page: 2 },
+		});
 	});
 
 	it("throws a not found message on a 404", async () => {

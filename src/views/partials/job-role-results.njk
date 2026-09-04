@@ -1,7 +1,7 @@
 <div class="results-bar">
 	<h2 class="display display--section">All roles</h2>
 	<div class="results-bar__actions">
-		<span class="results-bar__count">{{ jobRoles | length }} role{% if jobRoles | length != 1 %}s{% endif %}</span>
+		<span class="results-bar__count">{{ pagination.totalCount }} role{% if pagination.totalCount != 1 %}s{% endif %}</span>
 		{% if isAdmin %}
 			<a class="button button--ink" href="/jobs/job-roles/new">Add a job role</a>
 		{% endif %}
@@ -12,7 +12,10 @@
 	<ul class="job-list">
 		{% for jobRole in jobRoles %}
 			<li>
-				<a class="job-item" href="/jobs/job-roles/{{ jobRole.jobRoleId }}">
+				<a
+					class="job-item"
+					href="/jobs/job-roles/{{ jobRole.jobRoleId }}{% if pagination.page > 1 %}?page={{ pagination.page }}{% endif %}"
+				>
 					<div class="job-item__heading">
 						<h3 class="job-item__title">{{ jobRole.roleName }}</h3>
 						<span class="job-status job-status--{{ jobRole.status.statusName | lower }}">
@@ -44,4 +47,26 @@
 	</ul>
 {% else %}
 	<p class="empty-state">There are no job roles to show right now.</p>
+{% endif %}
+
+{% if pagination.totalPages > 1 %}
+	<nav class="pagination" aria-label="Job role pages">
+		{% if pagination.page > 1 %}
+			<a class="pagination__link" href="/jobs/job-roles">First</a>
+			<a class="pagination__link" href="/jobs/job-roles?page={{ pagination.page - 1 }}">Previous</a>
+		{% else %}
+			<span class="pagination__link pagination__link--disabled" aria-disabled="true">First</span>
+			<span class="pagination__link pagination__link--disabled" aria-disabled="true">Previous</span>
+		{% endif %}
+
+		<span class="pagination__status">Page {{ pagination.page }} of {{ pagination.totalPages }}</span>
+
+		{% if pagination.page < pagination.totalPages %}
+			<a class="pagination__link" href="/jobs/job-roles?page={{ pagination.page + 1 }}">Next</a>
+			<a class="pagination__link" href="/jobs/job-roles?page={{ pagination.totalPages }}">Last</a>
+		{% else %}
+			<span class="pagination__link pagination__link--disabled" aria-disabled="true">Next</span>
+			<span class="pagination__link pagination__link--disabled" aria-disabled="true">Last</span>
+		{% endif %}
+	</nav>
 {% endif %}

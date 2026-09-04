@@ -489,6 +489,45 @@ img {
 	color: var(--kainos-grey);
 }
 
+.pagination {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 0.6rem;
+	margin-top: 2rem;
+}
+
+.pagination__link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.5rem;
+	padding: 0.55rem 0.85rem;
+	border: 1px solid var(--kainos-blue);
+	border-radius: 4px;
+	color: var(--kainos-blue);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.pagination__link:hover,
+.pagination__link:focus-visible {
+	background: var(--kainos-blue);
+	color: var(--white);
+}
+
+.pagination__link--disabled {
+	border-color: var(--line);
+	color: var(--kainos-grey);
+	opacity: 0.6;
+}
+
+.pagination__status {
+	padding: 0.55rem 0.35rem;
+	color: var(--kainos-grey);
+	font-weight: 700;
+}
+
 /* ---------- Auth ---------- */
 
 .auth-card {
