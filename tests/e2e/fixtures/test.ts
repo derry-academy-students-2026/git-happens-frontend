@@ -2,6 +2,7 @@ import { test as base, expect } from "@playwright/test";
 import { HealthApiClient } from "../api/health.api-client.js";
 import { ErrorPage } from "../pages/error.page.js";
 import { HomePage } from "../pages/home.page.js";
+import { JobApplicationPage } from "../pages/job-application.page.js";
 import { JobRoleDetailPage } from "../pages/job-role-detail.page.js";
 import { JobRoleListPage } from "../pages/job-role-list.page.js";
 import { LoginPage } from "../pages/login.page.js";
@@ -10,6 +11,7 @@ import { RegisterPage } from "../pages/register.page.js";
 interface ApplicationFixtures {
 	errorPage: ErrorPage;
 	homePage: HomePage;
+	jobApplicationPage: JobApplicationPage;
 	jobRoleDetailPage: JobRoleDetailPage;
 	jobRoleListPage: JobRoleListPage;
 	authenticatedJobRoleListPage: JobRoleListPage;
@@ -24,6 +26,9 @@ export const test = base.extend<ApplicationFixtures>({
 	},
 	homePage: async ({ page }, use) => {
 		await use(new HomePage(page));
+	},
+	jobApplicationPage: async ({ page }, use) => {
+		await use(new JobApplicationPage(page));
 	},
 	jobRoleDetailPage: async ({ page }, use) => {
 		await use(new JobRoleDetailPage(page));

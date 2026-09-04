@@ -66,10 +66,7 @@ export class JobRoleController {
 			Logger.error(
 				`Failed to render the job role list: ${error instanceof Error ? error.message : String(error)}`,
 			);
-			if (
-				error instanceof Error &&
-				error.message === "Authentication required"
-			) {
+			if (error instanceof Error && error.message === "Authentication required") {
 				Logger.warn(
 					"Backend rejected job role list token; clearing JWT cookie",
 				);
@@ -125,7 +122,12 @@ export class JobRoleController {
 
 			const jobRole = await this.service.getJobRoleById(id, token);
 			Logger.debug(`Rendering job role information for id ${id}`);
-			res.render("pages/job-role-information.njk", { jobRole, backHref });
+			res.render("pages/job-role-information.njk", {
+				jobRole,
+				authenticatedUser: req.authenticatedUser,
+				query: req.query,
+				backHref
+			});
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			Logger.error(`Failed to render job role ${id}: ${message}`);
