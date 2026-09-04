@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import type { ZodError } from "zod";
+import type { JobRoleDTO } from "../dtos/jobRoleDto.js";
 import { ApiValidationError, AppError } from "../errors/customErrors.js";
 import Logger from "../lib/logger.js";
-import type { JobRoleDTO } from "../models/jobRoleModel.js";
 import type { JobRoleService } from "../services/JobRoleService.js";
 
 /** Fields echoed back to the add job role form when validation fails. */
@@ -22,6 +22,8 @@ const FIELD_ERROR_BY_MESSAGE: Record<string, string> = {
 	"Capability not found": "capabilityId",
 	"Band not found": "bandId",
 };
+
+const DEFAULT_CLOSING_DATE_MILLISECONDS = 86_400_000;
 
 /** Handles the HTTP layer for job role pages, delegating data access to the service. */
 export class JobRoleController {
@@ -290,7 +292,9 @@ export class JobRoleController {
 		res.status(options.status ?? 200).render("pages/job-role-form.njk", {
 			capabilities,
 			bands,
-			minimumClosingDate: new Date(Date.now() + 86_400_000)
+			minimumClosingDate: new Date(
+				Date.now() + DEFAULT_CLOSING_DATE_MILLISECONDS,
+			)
 				.toISOString()
 				.slice(0, 10),
 			formValues: options.formValues ?? {},

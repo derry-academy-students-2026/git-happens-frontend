@@ -73,7 +73,7 @@ export const JobRoleSchema = z.object({
 	numberOfOpenPositions: positiveInteger("Number of open positions"),
 });
 
-/** Schema for `POST /job-roles`, retained as a named compatibility alias. */
-export const CreateJobRoleSchema = JobRoleSchema;
 /** Body accepted by `POST /job-roles`, derived from the schema so both stay in sync. */
-export type CreateJobRoleRequestDTO = z.infer<typeof CreateJobRoleSchema>;
+export type CreateJobRoleRequestDTO = z.infer<typeof JobRoleSchema>;
+/** Body accepted by `PUT /job-roles/:id`. */
+export type UpdateJobRoleRequestDTO = z.infer<typeof JobRoleSchema>;
