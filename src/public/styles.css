@@ -395,6 +395,12 @@ img {
 	margin-top: 1.75rem;
 }
 
+.job-list__item {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
 .job-item {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);

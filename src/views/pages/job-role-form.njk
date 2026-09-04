@@ -1,13 +1,12 @@
-{% extends "layouts/base.njk" %}{% block title %}Add a job role{% endblock %}{%
+{% extends "layouts/base.njk" %}{% block title %}{% if jobRole %}Edit {{ jobRole.roleName }}{% else %}Add a job role{% endif %}{% endblock %}{%
   block masthead
 %}
   <section class="masthead masthead--compact">
     <div class="shell">
       <span class="section-label">Admin</span>
-      <h1 class="display display--page">Add a job role</h1>
+      <h1 class="display display--page">{% if jobRole %}Edit job role{% else %}Add a job role{% endif %}</h1>
       <p class="lede">
-        Create a role against an existing capability and band. New roles open
-        straight away.
+        {% if jobRole %}Update the role details. Its current status is not changed here.{% else %}Create a role against an existing capability and band. New roles open straight away.{% endif %}
       </p>
     </div>
   </section>{% endblock %}{% block content %}
@@ -20,6 +19,9 @@
       Role details
     </h2>
     <p class="form-card__intro">Every field is required.</p>
+    {% if jobRole and jobRole.status %}
+      <p class="form-card__intro">Current status: {{ jobRole.status.statusName }}</p>
+    {% endif %}
     {% if errorMessage %}
       <p
         class="form-error-summary"
@@ -30,7 +32,7 @@
     <form
       class="role-form"
       method="post"
-      action="/jobs/job-roles"
+      action="{% if jobRole %}/jobs/job-roles/{{ jobRole.jobRoleId }}/edit{% else %}/jobs/job-roles{% endif %}"
       novalidate>
       <div class="role-form__row">
         <div
@@ -134,7 +136,7 @@
             id="closingDate"
             name="closingDate"
             value="{{ formValues.closingDate }}"
-            min="{{ todayIsoDate }}"
+            min="{{ minimumClosingDate }}"
             {% if errors.closingDate %}
               aria-invalid="true"
               aria-describedby="closingDate-error"
@@ -206,10 +208,14 @@
         <button
           type="submit"
           class="button button--ink">
-          Create job role
+          {% if jobRole %}Save changes{% else %}Create job role{% endif %}
         </button> <a
           class="button button--outline"
-          href="/jobs/job-roles">Cancel</a>
+          href="{% if jobRole %}/jobs/job-roles/{{ jobRole.jobRoleId }}{% else %}/jobs/job-roles{% endif %}">Cancel</a>
       </div>
     </form>
   </section>{% endblock %}
+
+{% block scripts %}
+  <script src="/job-role-form.js" defer></script>
+{% endblock %}

@@ -1,11 +1,15 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { get, post } = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
+const { get, post, put } = vi.hoisted(() => ({
+	get: vi.fn(),
+	post: vi.fn(),
+	put: vi.fn(),
+}));
 
 vi.mock("../../src/config/apiClient.js", () => ({
-	default: { get, post },
-	apiClient: { get, post },
+	default: { get, post, put },
+	apiClient: { get, post, put },
 }));
 
 const { JobRoleService } = await import("../../src/services/JobRoleService.js");
@@ -364,5 +368,37 @@ describe("JobRoleService.createJobRole", () => {
 			"We couldn't create this job role right now. Please try again.",
 		);
 		expect(error.message).not.toContain("ECONNREFUSED");
+	});
+});
+
+describe("JobRoleService.updateJobRole", () => {
+	const request = {
+		roleName: "Backend Developer",
+		location: "Belfast",
+		capabilityId: 3,
+		bandId: 2,
+		closingDate: "2026-10-01",
+		description: "Build backend services.",
+		responsibilities: "Design APIs. Write tests.",
+		numberOfOpenPositions: 1,
+	};
+
+	beforeEach(() => {
+		put.mockReset();
+	});
+
+	it("puts the complete request to the selected role with bearer authorization", async () => {
+		put.mockResolvedValue({ data: apiJobRole });
+
+		const result = await new JobRoleService().updateJobRole(
+			1,
+			request,
+			"jwt-token",
+		);
+
+		expect(put).toHaveBeenCalledWith("job-roles/1", request, {
+			headers: { Authorization: "Bearer jwt-token" },
+		});
+		expect(result).toEqual(apiJobRole);
 	});
 });

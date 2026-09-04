@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { CreateJobRoleSchema } from "../dtos/jobRoleDto.js";
+import type { JobRoleSchema } from "../dtos/jobRoleDto.js";
 
 export interface CapabilityDTO {
 	capabilityId: number;
@@ -28,5 +28,11 @@ export interface JobRoleDTO {
 	numberOfOpenPositions: number;
 }
 
-/** Body accepted by `POST /job-roles`, derived from the zod schema so the two stay in sync. */
-export type CreateJobRoleRequestDTO = z.infer<typeof CreateJobRoleSchema>;
+/** Body accepted by job role create and full-update API requests. */
+export type JobRoleRequestDTO = z.infer<typeof JobRoleSchema>;
+
+/** Body accepted by `POST /job-roles`. */
+export type CreateJobRoleRequestDTO = JobRoleRequestDTO;
+
+/** Body accepted by `PUT /job-roles/:id`. */
+export type UpdateJobRoleRequestDTO = JobRoleRequestDTO;

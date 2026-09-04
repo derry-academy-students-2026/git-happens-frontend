@@ -58,6 +58,9 @@
 	</article>
 
 	<div class="job-detail__actions">
+		{% if isAdmin %}
+			<a class="button button--outline" href="/jobs/job-roles/{{ jobRole.jobRoleId }}/edit">Edit role</a>
+		{% endif %}
 		<a
 			class="button button--solid"
 			href="{{ jobRole.sharepointUrl }}"

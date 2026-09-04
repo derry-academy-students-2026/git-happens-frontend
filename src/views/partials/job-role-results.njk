@@ -12,7 +12,8 @@
 	<ul class="job-list">
 		{% for jobRole in jobRoles %}
 			<li>
-				<a class="job-item" href="/jobs/job-roles/{{ jobRole.jobRoleId }}">
+				<div class="job-list__item">
+					<a class="job-item" href="/jobs/job-roles/{{ jobRole.jobRoleId }}">
 					<div class="job-item__heading">
 						<h3 class="job-item__title">{{ jobRole.roleName }}</h3>
 						<span class="job-status job-status--{{ jobRole.status.statusName | lower }}">
@@ -38,7 +39,11 @@
 							<dd>{{ jobRole.closingDate | truncate(10, true, "") }}</dd>
 						</div>
 					</dl>
-				</a>
+					</a>
+					{% if isAdmin %}
+						<a class="button button--outline" href="/jobs/job-roles/{{ jobRole.jobRoleId }}/edit">Edit</a>
+					{% endif %}
+				</div>
 			</li>
 		{% endfor %}
 	</ul>

@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type { ZodError } from "zod";
 import { ApiValidationError, AppError } from "../errors/customErrors.js";
 import Logger from "../lib/logger.js";
+import type { JobRoleDTO } from "../models/jobRoleModel.js";
 import type { JobRoleService } from "../services/JobRoleService.js";
 
 /** Fields echoed back to the add job role form when validation fails. */
@@ -229,6 +230,20 @@ export class JobRoleController {
 		);
 	}
 
+	/** Maps the detailed job role response to the editable form's flat field values. */
+	private toFormValuesFromJobRole(jobRole: JobRoleDTO): Record<string, string> {
+		return {
+			roleName: jobRole.roleName,
+			location: jobRole.location,
+			capabilityId: String(jobRole.capability.capabilityId),
+			bandId: String(jobRole.band.bandId),
+			closingDate: jobRole.closingDate.slice(0, 10),
+			description: jobRole.description,
+			responsibilities: jobRole.responsibilities,
+			numberOfOpenPositions: String(jobRole.numberOfOpenPositions),
+		};
+	}
+
 	/**
 	 * Renders the add job role form with the capability and band dropdown options.
 	 *
@@ -237,7 +252,7 @@ export class JobRoleController {
 	 * @param options - Optional status, submitted values, field errors and summary message.
 	 * @returns Resolves once the form has been rendered.
 	 */
-	private async renderCreateForm(
+	private async renderJobRoleForm(
 		res: Response,
 		token: string,
 		options: {
@@ -245,6 +260,7 @@ export class JobRoleController {
 			formValues?: Record<string, string>;
 			errors?: Record<string, string>;
 			errorMessage?: string | null;
+			jobRole?: JobRoleDTO;
 		} = {},
 	): Promise<void> {
 		const [capabilities, bands] = await Promise.all([
@@ -255,10 +271,13 @@ export class JobRoleController {
 		res.status(options.status ?? 200).render("pages/job-role-form.njk", {
 			capabilities,
 			bands,
-			todayIsoDate: new Date().toISOString().slice(0, 10),
+			minimumClosingDate: new Date(Date.now() + 86_400_000)
+				.toISOString()
+				.slice(0, 10),
 			formValues: options.formValues ?? {},
 			errors: options.errors ?? {},
 			errorMessage: options.errorMessage ?? null,
+			jobRole: options.jobRole ?? null,
 		});
 	}
 
@@ -282,7 +301,7 @@ export class JobRoleController {
 			}
 
 			Logger.debug("Rendering the add job role form");
-			await this.renderCreateForm(res, token);
+			await this.renderJobRoleForm(res, token);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			Logger.error(`Failed to render the add job role form: ${message}`);
@@ -319,7 +338,7 @@ export class JobRoleController {
 			// Schema validation already ran in the validateCreateJobRole middleware.
 			if (!req.jobRoleInput) {
 				Logger.warn("Rejected job role creation with invalid form details");
-				await this.renderCreateForm(res, token, {
+				await this.renderJobRoleForm(res, token, {
 					status: 400,
 					formValues: this.toFormValues(body),
 					errors: req.jobRoleValidationError
@@ -356,7 +375,7 @@ export class JobRoleController {
 			try {
 				if (error instanceof ApiValidationError) {
 					const { errors, errorMessage } = this.mapApiValidationError(error);
-					await this.renderCreateForm(res, token, {
+					await this.renderJobRoleForm(res, token, {
 						status: 400,
 						formValues: this.toFormValues(body),
 						errors,
@@ -367,7 +386,7 @@ export class JobRoleController {
 
 				// createJobRole only ever throws safe, user-facing messages via AppError/createApiError.
 				const fieldForMessage = FIELD_ERROR_BY_MESSAGE[error.message];
-				await this.renderCreateForm(res, token, {
+				await this.renderJobRoleForm(res, token, {
 					status: 400,
 					formValues: this.toFormValues(body),
 					errors: fieldForMessage ? { [fieldForMessage]: error.message } : {},
@@ -376,6 +395,122 @@ export class JobRoleController {
 			} catch (renderError) {
 				Logger.error(
 					`Failed to re-render the add job role form: ${renderError instanceof Error ? renderError.message : String(renderError)}`,
+				);
+				res
+					.status(500)
+					.render("pages/error.njk", { error: "Internal Server Error" });
+			}
+		}
+	}
+
+	/** Renders the populated admin edit form for a valid job role id. */
+	async showEditForm(req: Request, res: Response): Promise<void> {
+		const id = Number(req.params.id);
+		if (!Number.isInteger(id) || id < 1) {
+			res
+				.status(400)
+				.render("pages/error.njk", { error: "That job role id is not valid" });
+			return;
+		}
+
+		try {
+			const token = req.authenticatedUser?.token;
+			if (!token) {
+				res.redirect(`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+				return;
+			}
+
+			const jobRole = await this.service.getJobRoleById(id, token);
+			await this.renderJobRoleForm(res, token, {
+				jobRole,
+				formValues: this.toFormValuesFromJobRole(jobRole),
+			});
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			Logger.error(`Failed to render edit form for job role ${id}: ${message}`);
+			if (this.handleAuthFailure(message, req, res)) return;
+			if (message === "Job role not found") {
+				res.status(404).render("pages/error.njk", { error: "Job role not found" });
+				return;
+			}
+			res
+				.status(500)
+				.render("pages/error.njk", { error: "Internal Server Error" });
+		}
+	}
+
+	/** Validates and fully updates a job role, then returns to its information page. */
+	async update(req: Request, res: Response): Promise<void> {
+		const id = Number(req.params.id);
+		if (!Number.isInteger(id) || id < 1) {
+			res
+				.status(400)
+				.render("pages/error.njk", { error: "That job role id is not valid" });
+			return;
+		}
+
+		const token = req.authenticatedUser?.token;
+		if (!token) {
+			res.redirect(`/auth/login?returnTo=${encodeURIComponent(req.originalUrl)}`);
+			return;
+		}
+
+		const body = (req.body ?? {}) as Record<string, unknown>;
+		try {
+			if (!req.jobRoleInput) {
+				await this.renderJobRoleForm(res, token, {
+					status: 400,
+					formValues: this.toFormValues(body),
+					errors: req.jobRoleValidationError
+						? this.toFieldErrors(req.jobRoleValidationError)
+						: {},
+					errorMessage: "Please correct the highlighted fields and try again.",
+					jobRole: { jobRoleId: id } as JobRoleDTO,
+				});
+				return;
+			}
+
+			const jobRole = await this.service.updateJobRole(id, req.jobRoleInput, token);
+			Logger.info(`Updated job role ${jobRole.jobRoleId}`);
+			res.redirect(`/jobs/job-roles/${jobRole.jobRoleId}`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			Logger.error(`Failed to update job role ${id}: ${message}`);
+			if (this.handleAuthFailure(message, req, res)) return;
+			if (!(error instanceof AppError)) {
+				res.status(500).render("pages/error.njk", { error: "Internal Server Error" });
+				return;
+			}
+			if (error.statusCode === 403) {
+				res.status(403).render("pages/error.njk", { error: error.message });
+				return;
+			}
+			if (error.statusCode === 404 && error.message === "Job role not found") {
+				res.status(404).render("pages/error.njk", { error: error.message });
+				return;
+			}
+
+			try {
+				const fieldForMessage =
+					error instanceof ApiValidationError
+						? undefined
+						: FIELD_ERROR_BY_MESSAGE[error.message];
+				const apiErrors =
+					error instanceof ApiValidationError
+						? this.mapApiValidationError(error)
+						: {
+							errors: fieldForMessage ? { [fieldForMessage]: error.message } : {},
+							errorMessage: fieldForMessage ? null : error.message,
+						};
+				await this.renderJobRoleForm(res, token, {
+					status: 400,
+					formValues: this.toFormValues(body),
+					...apiErrors,
+					jobRole: { jobRoleId: id } as JobRoleDTO,
+				});
+			} catch (renderError) {
+				Logger.error(
+					`Failed to re-render edit form: ${renderError instanceof Error ? renderError.message : String(renderError)}`,
 				);
 				res
 					.status(500)
