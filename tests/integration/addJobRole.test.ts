@@ -444,7 +444,17 @@ describe("edit job role workflow", () => {
 
 	it("exposes the same edit form from the job role list and information page", async () => {
 		get.mockImplementation((url: string) => {
-			if (url === "job-roles") return Promise.resolve({ data: [createdJobRole] });
+			if (url === "job-roles") {
+				return Promise.resolve({
+					data: {
+						jobRoles: [createdJobRole],
+						page: 1,
+						pageSize: 10,
+						totalCount: 1,
+						totalPages: 1,
+					},
+				});
+			}
 			if (url === "job-roles/9") return Promise.resolve({ data: createdJobRole });
 			throw new Error(`Unexpected GET ${url}`);
 		});
@@ -523,6 +533,25 @@ describe("edit job role workflow", () => {
 		expect(response.status).toBe(400);
 		expect(response.text).toContain("Role name must not be empty");
 		expect(response.text).toContain('action="/jobs/job-roles/9/edit"');
+	});
+
+	it("preserves a backend 404 when the selected capability or band is unavailable", async () => {
+		put.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 404,
+				data: { message: "Capability not found" },
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles/9/edit")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(404);
+		expect(response.text).toContain("Capability not found");
 	});
 
 	it("blocks unauthenticated and non-admin edit requests before calling the API", async () => {

@@ -463,7 +463,7 @@ export class JobRoleController {
 		const id = Number(req.params.id);
 		if (!Number.isInteger(id) || id < 1) {
 			res
-				.status(400)
+				.status(404)
 				.render("pages/error.njk", { error: "That job role id is not valid" });
 			return;
 		}
@@ -504,7 +504,7 @@ export class JobRoleController {
 				res.status(403).render("pages/error.njk", { error: error.message });
 				return;
 			}
-			if (error.statusCode === 404 && error.message === "Job role not found") {
+			if (error.statusCode === 404) {
 				res.status(404).render("pages/error.njk", { error: error.message });
 				return;
 			}
