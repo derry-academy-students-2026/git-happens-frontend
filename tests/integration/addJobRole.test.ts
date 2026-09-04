@@ -442,7 +442,7 @@ describe("edit job role workflow", () => {
 		});
 	});
 
-	it("exposes the same edit form from the job role list and information page", async () => {
+	it("exposes the edit form from the job role information page only", async () => {
 		get.mockImplementation((url: string) => {
 			if (url === "job-roles") {
 				return Promise.resolve({
@@ -466,7 +466,7 @@ describe("edit job role workflow", () => {
 			.get("/jobs/job-roles/9")
 			.set("Cookie", [`jwt=${adminToken}`]);
 
-		expect(listResponse.text).toContain('href="/jobs/job-roles/9/edit"');
+		expect(listResponse.text).not.toContain('href="/jobs/job-roles/9/edit"');
 		expect(detailResponse.text).toContain('href="/jobs/job-roles/9/edit"');
 	});
 

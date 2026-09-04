@@ -395,12 +395,6 @@ img {
 	margin-top: 1.75rem;
 }
 
-.job-list__item {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-}
-
 .job-item {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
@@ -930,6 +924,15 @@ img {
 	margin: 0;
 }
 
+.job-detail__edit-link {
+	margin-left: auto;
+	padding: 0.25rem 0.7rem;
+	border-width: 1px;
+	font-size: 0.68rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
 .job-detail__section {
 	margin-top: 2rem;
 	padding-top: 2rem;
@@ -1271,6 +1274,10 @@ img {
 
 	.job-meta {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.job-detail__edit-link {
+		margin-left: 0;
 	}
 }
 
