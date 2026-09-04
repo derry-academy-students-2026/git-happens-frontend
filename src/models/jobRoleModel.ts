@@ -11,22 +11,5 @@ export interface BandDTO {
 	bandName: string;
 }
 
-export interface JobRoleDTO {
-	jobRoleId: number;
-	roleName: string;
-	location: string;
-	capability: CapabilityDTO;
-	band: BandDTO;
-	closingDate: string;
-	status: {
-		statusId: number;
-		statusName: string;
-	};
-	description: string;
-	responsibilities: string;
-	sharepointUrl: string;
-	numberOfOpenPositions: number;
-}
-
 /** Body accepted by `POST /job-roles`, derived from the zod schema so the two stay in sync. */
 export type CreateJobRoleRequestDTO = z.infer<typeof CreateJobRoleSchema>;
