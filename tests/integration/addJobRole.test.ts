@@ -3,11 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Only the axios boundary (apiClient) is mocked so the real router, controller
 // and JobRoleService run together for the add-new-role workflow specifically.
-const { get, post } = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
+const { get, post, put } = vi.hoisted(() => ({
+	get: vi.fn(),
+	post: vi.fn(),
+	put: vi.fn(),
+}));
 
 vi.mock("../../src/config/apiClient.js", () => ({
-	default: { get, post },
-	apiClient: { get, post },
+	default: { get, post, put },
+	apiClient: { get, post, put },
 }));
 
 const { default: app } = await import("../../src/app.js");
@@ -59,6 +63,7 @@ describe("add new job role workflow", () => {
 	beforeEach(() => {
 		get.mockReset();
 		post.mockReset();
+		put.mockReset();
 		get.mockImplementation((url: string) => {
 			if (url === "capabilities")
 				return Promise.resolve({ data: capabilities });
@@ -144,12 +149,11 @@ describe("add new job role workflow", () => {
 			.send({ ...validSubmission, closingDate: "2020-01-01" });
 
 		expect(response.status).toBe(400);
-		expect(response.text).toContain("Closing date must not be in the past");
+		expect(response.text).toContain("Closing date must be in the future");
 		expect(post).not.toHaveBeenCalled();
 	});
 
-	it("accepts today's date as the closing date", async () => {
-		post.mockResolvedValue({ data: createdJobRole });
+	it("rejects today's date as the closing date", async () => {
 		const todayIsoDate = new Date().toISOString().slice(0, 10);
 
 		const response = await request(app)
@@ -158,8 +162,9 @@ describe("add new job role workflow", () => {
 			.type("form")
 			.send({ ...validSubmission, closingDate: todayIsoDate });
 
-		expect(response.status).toBe(302);
-		expect(post).toHaveBeenCalled();
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Closing date must be in the future");
+		expect(post).not.toHaveBeenCalled();
 	});
 
 	it("renders a closing date that carries an end-of-day time component as a date only", async () => {
@@ -421,5 +426,149 @@ describe("add new job role workflow", () => {
 		expect(response.status).toBe(302);
 		expect(response.headers.location).toContain("/auth/login");
 		expect(get).not.toHaveBeenCalled();
+	});
+});
+
+describe("edit job role workflow", () => {
+	beforeEach(() => {
+		get.mockReset();
+		post.mockReset();
+		put.mockReset();
+		get.mockImplementation((url: string) => {
+			if (url === "capabilities") return Promise.resolve({ data: capabilities });
+			if (url === "bands") return Promise.resolve({ data: bands });
+			if (url === "job-roles/9") return Promise.resolve({ data: createdJobRole });
+			throw new Error(`Unexpected GET ${url}`);
+		});
+	});
+
+	it("exposes the edit form from the job role information page only", async () => {
+		get.mockImplementation((url: string) => {
+			if (url === "job-roles") {
+				return Promise.resolve({
+					data: {
+						jobRoles: [createdJobRole],
+						page: 1,
+						pageSize: 10,
+						totalCount: 1,
+						totalPages: 1,
+					},
+				});
+			}
+			if (url === "job-roles/9") return Promise.resolve({ data: createdJobRole });
+			throw new Error(`Unexpected GET ${url}`);
+		});
+
+		const listResponse = await request(app)
+			.get("/jobs/job-roles")
+			.set("Cookie", [`jwt=${adminToken}`]);
+		const detailResponse = await request(app)
+			.get("/jobs/job-roles/9")
+			.set("Cookie", [`jwt=${adminToken}`]);
+
+		expect(listResponse.text).not.toContain('href="/jobs/job-roles/9/edit"');
+		expect(detailResponse.text).toContain('href="/jobs/job-roles/9/edit"');
+	});
+
+	it("loads the existing role into the shared edit form with selected ids", async () => {
+		const response = await request(app)
+			.get("/jobs/job-roles/9/edit")
+			.set("Cookie", [`jwt=${adminToken}`]);
+
+		expect(response.status).toBe(200);
+		expect(response.text).toContain('action="/jobs/job-roles/9/edit"');
+		expect(response.text).toContain('value="Backend Developer"');
+		expect(response.text).toContain('value="3"\n                \n                  selected');
+		expect(response.text).toContain('value="2"\n                \n                  selected');
+		expect(response.text).toContain("Current status: Open");
+		expect(get).toHaveBeenCalledWith("job-roles/9", {
+			headers: { Authorization: `Bearer ${adminToken}` },
+		});
+	});
+
+	it("sends the complete edited form as numeric ids through the PUT endpoint", async () => {
+		put.mockResolvedValue({
+			data: { ...createdJobRole, roleName: "Senior Backend Developer" },
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles/9/edit")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send({
+				...validSubmission,
+				roleName: "Senior Backend Developer",
+				numberOfOpenPositions: "3",
+			});
+
+		expect(put).toHaveBeenCalledWith(
+			"job-roles/9",
+			{
+				...validSubmission,
+				roleName: "Senior Backend Developer",
+				capabilityId: 3,
+				bandId: 2,
+				numberOfOpenPositions: 3,
+			},
+			{ headers: { Authorization: `Bearer ${adminToken}` } },
+		);
+		expect(response.status).toBe(302);
+		expect(response.headers.location).toBe("/jobs/job-roles/9");
+	});
+
+	it("re-renders the edit form with backend validation errors", async () => {
+		put.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 400,
+				data: {
+					message: "Invalid job role details",
+					errors: [{ field: "roleName", message: "Role name must not be empty" }],
+				},
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles/9/edit")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(400);
+		expect(response.text).toContain("Role name must not be empty");
+		expect(response.text).toContain('action="/jobs/job-roles/9/edit"');
+	});
+
+	it("preserves a backend 404 when the selected capability or band is unavailable", async () => {
+		put.mockRejectedValue({
+			isAxiosError: true,
+			response: {
+				status: 404,
+				data: { message: "Capability not found" },
+			},
+		});
+
+		const response = await request(app)
+			.post("/jobs/job-roles/9/edit")
+			.set("Cookie", [`jwt=${adminToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(response.status).toBe(404);
+		expect(response.text).toContain("Capability not found");
+	});
+
+	it("blocks unauthenticated and non-admin edit requests before calling the API", async () => {
+		const unauthenticated = await request(app).get("/jobs/job-roles/9/edit");
+		const nonAdmin = await request(app)
+			.post("/jobs/job-roles/9/edit")
+			.set("Cookie", [`jwt=${userToken}`])
+			.type("form")
+			.send(validSubmission);
+
+		expect(unauthenticated.status).toBe(302);
+		expect(nonAdmin.status).toBe(403);
+		expect(get).not.toHaveBeenCalled();
+		expect(put).not.toHaveBeenCalled();
 	});
 });

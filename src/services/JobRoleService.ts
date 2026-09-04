@@ -6,6 +6,7 @@ import type {
 	CreateJobRoleRequestDTO,
 	JobRoleDTO,
 	PaginatedJobRoles,
+	UpdateJobRoleRequestDTO,
 } from "../dtos/jobRoleDto.js";
 import { createApiError, createNetworkError } from "../errors/customErrors.js";
 import Logger from "../lib/logger.js";
@@ -221,6 +222,56 @@ export class JobRoleService {
 			Logger.error(`Unexpected error creating job role: ${String(error)}`);
 			throw createNetworkError(
 				"We couldn't create this job role right now. Please try again.",
+			);
+		}
+	}
+
+	/**
+	 * Fully updates an existing job role. The backend restricts this to admin users.
+	 *
+	 * @param id - Numeric id of the job role to update.
+	 * @param request - Complete editable job role details.
+	 * @param token - Bearer token for the signed in user.
+	 * @returns The updated job role returned by the API.
+	 * @throws {ApiValidationError} When the API responds 400 with field-level errors.
+	 * @throws {AppError} For handled authorization, not-found, network, and server failures.
+	 */
+	async updateJobRole(
+		id: number,
+		request: UpdateJobRoleRequestDTO,
+		token: string,
+	): Promise<JobRoleDTO> {
+		try {
+			Logger.debug(`Updating job role ${id} via the API`);
+			const response = await apiClient.put<JobRoleDTO>(`job-roles/${id}`, request, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			Logger.info(`API updated job role ${response.data.jobRoleId}`);
+			return response.data;
+		} catch (error) {
+			this.throwIfUnauthorized(error);
+			if (axios.isAxiosError(error)) {
+				if (!error.response) {
+					Logger.error(
+						`Update job role ${id} request failed with no response: ${error.message}`,
+					);
+					throw createNetworkError(
+						"We couldn't update this job role right now. Please try again.",
+					);
+				}
+
+				const { status, data } = error.response;
+				Logger.error(
+					`Update job role ${id} request failed with status ${status}: ${error.message}`,
+				);
+				const fallbackMessage =
+					status === 404 ? "Job role, capability, or band not found" : undefined;
+				throw createApiError(status, data, fallbackMessage);
+			}
+
+			Logger.error(`Unexpected error updating job role ${id}: ${String(error)}`);
+			throw createNetworkError(
+				"We couldn't update this job role right now. Please try again.",
 			);
 		}
 	}

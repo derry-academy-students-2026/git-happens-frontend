@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ZodError } from "zod";
 import {
-	CreateJobRoleSchema,
+	JobRoleSchema,
 	type CreateJobRoleRequestDTO,
 } from "../dtos/jobRoleDto.js";
 
@@ -13,7 +13,7 @@ declare module "express-serve-static-core" {
 }
 
 /**
- * Validates a job role creation body against `CreateJobRoleSchema`, so the
+ * Validates a job role creation body against `JobRoleSchema`, so the
  * controller only ever deals with already-parsed data or a validation error.
  *
  * @param req - Incoming `POST /jobs/job-roles` request.
@@ -25,7 +25,7 @@ export function validateCreateJobRole(
 	_res: Response,
 	next: NextFunction,
 ): void {
-	const result = CreateJobRoleSchema.safeParse(req.body ?? {});
+	const result = JobRoleSchema.safeParse(req.body ?? {});
 
 	if (result.success) {
 		req.jobRoleInput = result.data;

@@ -64,6 +64,24 @@ jobRoleRouter.post(
 	},
 );
 
+/** Renders the populated admin form for editing a job role. */
+jobRoleRouter.get("/job-roles/:id/edit", requireJwt, requireAdmin, (req, res) => {
+	Logger.debug(`GET /jobs/job-roles/${req.params.id}/edit`);
+	controller.showEditForm(req, res);
+});
+
+/** Fully updates a job role from its admin edit form. */
+jobRoleRouter.post(
+	"/job-roles/:id/edit",
+	requireJwt,
+	requireAdmin,
+	validateCreateJobRole,
+	(req, res) => {
+		Logger.debug(`POST /jobs/job-roles/${req.params.id}/edit`);
+		controller.update(req, res);
+	},
+);
+
 /**
  * Renders the information page for a single job role.
  *
